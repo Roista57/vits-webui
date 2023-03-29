@@ -71,6 +71,10 @@ python train.py -c <config> -m <folder>
 python train_ms.py -c <config> -m <folder>
 ```
 If you want to train from pretrained model, Place 'G_0.pth' and 'D_0.pth' in destination folder before enter train command.
+## Tensorboard
+```sh
+tensorboard --logdir checkpoints/<folder> --port 6006
+```
 ## Inference
 [infer.ipynb](infer.ipynb)
 
