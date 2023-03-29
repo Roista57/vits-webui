@@ -1,16 +1,34 @@
 # How to use
-(Suggestion) Python == 3.7
 ## Clone this repository
 ```sh
-git clone https://github.com/CjangCjengh/vits.git
+git clone https://github.com/ouor/vits.git
 ```
 ## Choose cleaners
+
 - Fill "text_cleaners" in config.json
+- Initialy "text_cleaners" is set to 'korean_cleaners'. To use alternative cleaners, revise with following step.
 - Edit text/symbols.py
 - Remove unnecessary imports from text/cleaners.py
+## Create virtual environment
+```sh
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+## Install pytorch
+```sh
+pip3 install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --index-url https://download.pytorch.org/whl/cu117
+```
 ## Install requirements
 ```sh
 pip install -r requirements.txt
+```
+If error occurs while install requirements, Install [visual studio build tools](https://visualstudio.microsoft.com/downloads/?q=build+tools) and try again.
+## Build monotonic alignment search
+```sh
+cd monotonic_align
+mkdir monotonic_align
+python setup.py build_ext --inplace
+cd ..
 ```
 ## Create datasets
 ### Single speaker
@@ -32,20 +50,18 @@ path/to/XXX.wav|speaker id|transcript
 dataset/001.wav|0|こんにちは。
 ```
 ## Preprocess
-If you have done this, set "cleaned_text" to true in config.json
+If you need random pick from full filelist..
+```sh
+python random_pick.py --filelist path/to/filelist.txt
+```
 ```sh
 # Single speaker
-python preprocess.py --text_index 1 --filelists path/to/filelist_train.txt path/to/filelist_val.txt
+python preprocess.py --text_index 1 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners ['korean_cleaners']
 
 # Mutiple speakers
-python preprocess.py --text_index 2 --filelists path/to/filelist_train.txt path/to/filelist_val.txt
+python preprocess.py --text_index 2 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners ['korean_cleaners']
 ```
-## Build monotonic alignment search
-```sh
-cd monotonic_align
-python setup.py build_ext --inplace
-cd ..
-```
+If you have done this, set "cleaned_text" to true in config.json
 ## Train
 ```sh
 # Single speaker
@@ -54,11 +70,9 @@ python train.py -c <config> -m <folder>
 # Mutiple speakers
 python train_ms.py -c <config> -m <folder>
 ```
+If you want to train from pretrained model, Place 'G_0.pth' and 'D_0.pth' in destination folder before enter train command.
 ## Inference
-### Online
-See [inference.ipynb](inference.ipynb)
-### Offline
-See [MoeGoe](https://github.com/CjangCjengh/MoeGoe)
+[infer.ipynb](infer.ipynb)
 
 # Running in Docker
 

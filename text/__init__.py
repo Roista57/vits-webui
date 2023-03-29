@@ -53,4 +53,7 @@ def _clean_text(text, cleaner_names):
     if not cleaner:
       raise Exception('Unknown cleaner: %s' % name)
     text = cleaner(text)
+    for char in text:
+      if char not in symbols:
+        text.replace(char, '')
   return text
