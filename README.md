@@ -56,10 +56,10 @@ python random_pick.py --filelist path/to/filelist.txt
 ```
 ```sh
 # Single speaker
-python preprocess.py --text_index 1 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners ['korean_cleaners']
+python preprocess.py --text_index 1 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners 'korean_cleaners'
 
 # Mutiple speakers
-python preprocess.py --text_index 2 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners ['korean_cleaners']
+python preprocess.py --text_index 2 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners 'korean_cleaners'
 ```
 If you have done this, set "cleaned_text" to true in config.json
 ## Train
