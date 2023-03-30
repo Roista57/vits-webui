@@ -62,6 +62,11 @@ python preprocess.py --text_index 1 --filelists path/to/filelist_train.txt path/
 python preprocess.py --text_index 2 --filelists path/to/filelist_train.txt path/to/filelist_val.txt --text_cleaners 'korean_cleaners'
 ```
 If you have done this, set "cleaned_text" to true in config.json
+## Small Tips
+- recommand to use pretrained model (you can get pretrained model from huggingface.co)
+- If your vram is not enough (less than 40GB)
+- do not train with 44100Hz. 22050Hz is good enough.
+- make each dataset audio length short. (recommand to use maximum 4 seconds per audio)
 ## Train
 ```sh
 # Single speaker

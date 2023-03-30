@@ -4,12 +4,13 @@ import argparse
 
 args = argparse.ArgumentParser()
 args.add_argument("--filelist", required=True, help="full filelist to be sampled")
+args.add_argument("--val_ratio", default=0.015, type=float, help="ratio of validation data")
 args = args.parse_args()
 
 with open(args.filelist, "r", encoding="utf-8") as f:
   data = f.readlines()
 
-val_ratio = 0.015
+val_ratio = args.val_ratio
 random.shuffle(data)
 val_data = data[:int(len(data) * val_ratio)]
 train_data = data[int(len(data) * val_ratio):]
