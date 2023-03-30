@@ -18,3 +18,4 @@ indic_transliteration
 num_thai
 opencc
 ipython
+gradio

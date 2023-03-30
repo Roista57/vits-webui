@@ -4,6 +4,7 @@ monotonic_align/build/
 monotonic_align/core.c
 
 .venv/
+*.ipynb
 infer/*
 datasets/*
 checkpoints/*

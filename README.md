@@ -76,7 +76,12 @@ If you want to train from pretrained model, Place 'G_0.pth' and 'D_0.pth' in des
 tensorboard --logdir checkpoints/<folder> --port 6006
 ```
 ## Inference
+### Jupyter notebook
 [infer.ipynb](infer.ipynb)
+### Gradio web app
+```sh
+python server.py --config_path path/to/config.json --model_path path/to/model.pth
+```
 
 # Running in Docker
 
