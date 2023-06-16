@@ -1,3 +1,4 @@
+한국어 버전은 여기로 → [README-ko.md](README-ko.md)
 # How to use
 ## Clone this repository
 ```sh
