@@ -1,11 +1,10 @@
 Cython
 librosa==0.8.0
 matplotlib
-numpy
+numpy==1.19.5
 scipy
 tensorboard
 unidecode
-pyopenjtalk
 jamo
 pypinyin
 jieba
