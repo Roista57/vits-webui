@@ -8,7 +8,7 @@ tensorboard
 Unidecode
 jamo
 pypinyin
-pyopenjtalk
+pyopenjtalk==0.2.0
 jieba
 protobuf
 cn2an
@@ -20,3 +20,4 @@ num_thai
 opencc
 ipython
 gradio
+gdown
