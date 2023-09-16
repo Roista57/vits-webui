@@ -106,7 +106,7 @@ def main():
             "Reference \n\n"
             "- [https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS](https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS)\n\n"   
         )
-    app.queue(concurrency_count=3).launch(show_api=False)
+    app.queue(concurrency_count=3).launch(server_name="0.0.0.0", server_port=7860, show_api=False)
 
 if __name__ == "__main__":
     main()

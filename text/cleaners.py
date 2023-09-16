@@ -1,5 +1,5 @@
 import re
-# from text.japanese import japanese_to_romaji_with_accent, japanese_to_ipa, japanese_to_ipa2, japanese_to_ipa3
+from text.japanese import japanese_to_romaji_with_accent, japanese_to_ipa, japanese_to_ipa2, japanese_to_ipa3
 from text.korean import latin_to_hangul, number_to_hangul, divide_hangul, korean_to_lazy_ipa, korean_to_ipa
 # from text.mandarin import number_to_chinese, chinese_to_bopomofo, latin_to_bopomofo, chinese_to_romaji, chinese_to_lazy_ipa, chinese_to_ipa, chinese_to_ipa2
 # from text.sanskrit import devanagari_to_ipa
@@ -10,14 +10,14 @@ from text.korean import latin_to_hangul, number_to_hangul, divide_hangul, korean
 # from text.ngu_dialect import ngu_dialect_to_ipa
 
 
-# def japanese_cleaners(text):
-#     text = japanese_to_romaji_with_accent(text)
-#     text = re.sub(r'([A-Za-z])$', r'\1.', text)
-#     return text
+def japanese_cleaners(text):
+    text = japanese_to_romaji_with_accent(text)
+    text = re.sub(r'([A-Za-z])$', r'\1.', text)
+    return text
 
 
-# def japanese_cleaners2(text):
-#     return japanese_cleaners(text).replace('ts', 'ʦ').replace('...', '…')
+def japanese_cleaners2(text):
+    return japanese_cleaners(text).replace('ts', 'ʦ').replace('...', '…')
 
 
 def korean_cleaners(text):

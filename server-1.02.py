@@ -133,7 +133,7 @@ def main():
             "- [https://github.com/kdrkdrkdr]\n\n"
         )
     # webbrowser.open("http://0.0.0.0:8080", new=1)
-    app.queue(concurrency_count=3).launch(server_name="0.0.0.0", port=8080, show_api=False)
+    app.queue(concurrency_count=3).launch(server_name="0.0.0.0", server_port=8080, show_api=False)
 
 
 if __name__ == "__main__":
