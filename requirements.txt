@@ -1,11 +1,11 @@
-Cython==3.0.2
+Cython==0.29.21
 librosa==0.8.0
-matplotlib
+matplotlib==3.3.1
 numpy==1.19.5
-numba
-scipy
+numba==0.56.4
+scipy==1.10.1
 tensorboard
-Unidecode
+Unidecode==1.1.1
 jamo
 pypinyin
 pyopenjtalk==0.2.0
