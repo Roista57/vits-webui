@@ -8,7 +8,6 @@ tensorboard
 Unidecode==1.1.1
 jamo==0.4.1
 pypinyin==0.44.0
-pyopenjtalk==0.2.0
 jieba==0.42.1
 protobuf
 cn2an==0.5.17
