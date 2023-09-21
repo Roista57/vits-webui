@@ -1,3 +1,8 @@
+import re
+import inflect
+from unidecode import unidecode
+import eng_to_ipa as ipa
+
 """ from https://github.com/keithito/tacotron """
 
 '''
@@ -16,10 +21,8 @@ hyperparameter. Some cleaners are English-specific. You'll typically want to use
 # Regular expression matching whitespace:
 
 
-import re
-import inflect
-from unidecode import unidecode
-import eng_to_ipa as ipa
+
+
 _inflect = inflect.engine()
 _comma_number_re = re.compile(r'([0-9][0-9\,]+[0-9])')
 _decimal_number_re = re.compile(r'([0-9]+\.[0-9]+)')

@@ -167,6 +167,5 @@ def main():
     app.queue(concurrency_count=3).launch(server_port=7860, share=True, show_api=False)
 
 
-
 if __name__ == "__main__":
     main()
