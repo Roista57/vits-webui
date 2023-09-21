@@ -9,6 +9,7 @@ import torch
 from torch import no_grad, LongTensor
 import commons
 import utils
+import webbrowser
 import gradio as gr
 from models import SynthesizerTrn
 from text import text_to_sequence, _clean_text
@@ -72,21 +73,12 @@ def main():
     parser.add_argument("--model_path", required=True, help="path to model file")
     args = parser.parse_args()
 
-
-
     models_tts = []
     name = 'VITS-TTS demo v1.02'
     example = '학습은 잘 마치셨나요? 좋은 결과가 있길 바래요.'
 
     config_path = args.config_path
     model_path = args.model_path
-
-
-    # config_path = "D:/model/japanese/config.json"
-    # model_path = "D:/model/japanese/G_330000.pth"
-
-    # config_path = "D:/model/korean/config.json"
-    # model_path = "D:/model/korean/G_296000.pth"
 
     hps = utils.get_hparams_from_file(config_path)
     model = SynthesizerTrn(
@@ -107,23 +99,51 @@ def main():
     app = gr.Blocks(css=css)
 
     with app:
-        gr.Markdown("Gradio VITS-TTS Inference demo v1.01\n\n")
+        gr.Markdown("Gradio VITS-TTS Inference demo v1.02\n\n")
         with gr.Tabs():
             for i, (name, speakers, example, symbols, tts_fn,
                     to_phoneme_fn) in enumerate(models_tts):
-                with gr.TabItem(f"VITS-TTS_v1.01"):
+                with gr.TabItem(f"VITS-TTS_v1.02"):
                     with gr.Column():
                         gr.Markdown(f"## {name}\n\n")
-                        # Invisible functions
-                        # tts_language = gr.TextArea(label="Language")
-                        tts_input1 = gr.TextArea(label="Text", value=example,
-                                                    elem_id=f"tts-input{i}")
-                        """# 예제 입력 및 출력 제공
-                        gr.Examples(
-                            examples=[["한국어", "학습은 잘 마치셨나요? 좋은 결과가 있길 바래요."],
-                                      ["일본어", "料理をするのが趣味で、よく家で夕食を作ります。"]],
-                            inputs=[tts_language, tts_input1]
-                        )"""
+                        tts_input1 = gr.TextArea(label="Text",
+                                                 elem_id=f"tts-input{i}")
+
+                        if hps.data.text_cleaners[0] == "korean_cleaners":
+                            # 예제 입력 및 출력 제공
+                            gr.Examples(
+                                examples=[
+                                    ["학습은 잘 마치셨나요? 좋은 결과가 있길 바래요."],
+                                    ["오늘의 날씨는 어떻게 되나요? 비가 오려나요?"],
+                                    ["저는 AI 기술에 대한 연구를 진행 중입니다."],
+                                    ["주말 계획은 이미 정해두셨나요? 어디로 가실 건가요?"],
+                                    ["음성 인식 기술의 발전에 대해 어떻게 생각하시나요?"],
+                                    ["휴일에는 가족들과 함께 행복한 시간을 보내고 싶어요."],
+                                    ["한국어 TTS 시스템은 다양한 목소리로 테스트해보세요."],
+                                    ["AI 모델의 학습 시간을 단축하고 싶은데 조언 부탁드려요."],
+                                    ["데이터 전처리 과정에서 주의할 점이 무엇인가요?"],
+                                    ["감사합니다! 당신의 도움 덕분에 문제를 해결했어요."]
+                                ],
+                                inputs=[tts_input1]
+                            )
+                        elif hps.data.text_cleaners[0] == "japanese_cleaners2":
+                            # 예제 입력 및 출력 제공
+                            gr.Examples(
+                                examples=[
+                                    ["料理をするのが趣味で、よく家で夕食を作ります。"],
+                                    ["最近の技術進歩は驚くべきものがありますね。"],
+                                    ["週末はどこかに旅行する予定がありますか？"],
+                                    ["私はAI技術の研究をしている大学生です。"],
+                                    ["日本語の音声認識システムをテストしています。"],
+                                    ["天気予報によると、明日は雨が降るそうです。"],
+                                    ["読書は心のリフレッシュに最適な趣味だと思います。"],
+                                    ["AIの進化について、どのように感じていますか？"],
+                                    ["今日の夕食は何を作る予定ですか？美味しそう!"],
+                                    ["ありがとうございます。あなたの助けで問題を解決しました。"]
+                                ],
+                                inputs=[tts_input1]
+                            )
+
                         tts_input2 = gr.Dropdown(label="Speaker", choices=speakers,
                                                     type="index", value=speakers[0])
                         tts_input3 = gr.Slider(label="Speed", value=1, minimum=0.1, maximum=2, step=0.05)
@@ -143,7 +163,9 @@ def main():
             "- [https://github.com/kdrkdrkdr]\n\n"
             "- [https://github.com/ilya-scherzo]\n\n"
         )
+    webbrowser.open("http://127.0.0.1:7860/")
     app.queue(concurrency_count=3).launch(server_port=7860, share=True, show_api=False)
+
 
 
 if __name__ == "__main__":
