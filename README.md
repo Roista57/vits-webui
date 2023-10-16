@@ -4,6 +4,14 @@
 git clone https://github.com/Roista57/VITS.git
 ```
 ## 모듈 설치
+
+## 파일들
+##### python3.8: https://www.python.org/downloads/release/python-3810/
+##### cmake: https://cmake.org/download/
+##### visual studio build tools: https://visualstudio.microsoft.com/ko/vs/older-downloads/
+##### Cuda Toolkit: https://developer.nvidia.com/cuda-toolkit-archive
+##### cuDNN: https://developer.nvidia.com/rdp/cudnn-archive
+
 ```
 pip install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --index-url https://download.pytorch.org/whl/cu117
 pip install -r requirements.txt
