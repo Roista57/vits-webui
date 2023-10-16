@@ -31,7 +31,7 @@ def language_cleaner(speaker, lang):
         my_config.speaker = '2'
     if lang == 'ko':
         my_config.cleaners = "korean_cleaners"
-    elif lang == 'jp':
+    elif lang == 'ja':
         my_config.cleaners = "japanese_cleaners2"
     elif lang == 'en':
         my_config.cleaners = "english_cleaners2"
@@ -153,6 +153,23 @@ def run_train(speaker, config_path, model_path):
         return f"Error: {result.stderr}"
 
 
+def run_tensorboard(model_path):
+    if os.path.isdir(model_path):
+        result = subprocess.run(
+            [python, "tensorboard", "--logdir", model_path, "--host", "0.0.0.0", "--port", "6006"],
+            stdout=sys.stdout,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8',
+        )
+        if result.stderr:
+            return f"Error: {result.stderr}"
+        return "텐서보드가 실행되었습니다."
+    else:
+        return "모델의 경로가 잘못되었습니다."
+
+
+
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
         with gr.Column(scale=1):
@@ -172,7 +189,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     info="화자가 한 명인 경우 Single, 화자가 여러명이라면 Multi를 선택해주세요."
                 )
                 language_choice = gr.Radio(
-                    choices=["ko", "jp", "en"],
+                    choices=["ko", "ja", "en"],
                     label="언어 선택",
                     value="ko",
                     interactive=True,
@@ -321,7 +338,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     )
                     train_model_path = gr.Textbox(
                         label="모델을 저장하는 위치",
-                        value="filelists/config.json",
+                        value="checkpoint/model",
                         interactive=True
                     )
                 with gr.Row():
@@ -332,8 +349,37 @@ with gr.Blocks(title="VITS-WebUI") as app:
                         inputs=[train_speakers, train_config_path, train_model_path],
                         outputs=[train_textbox]
                     )
+        with gr.Column(scale=1):
+            gr.Markdown(
+                """
+                ## Step 5: Tensorboard 실행하기
+                """
+            )
+            with gr.Row():
+                folder_path = gr.Textbox(
+                    label="모델 경로",
+                    value="checkpoint/model",
+                    info="모델을 저장한 경로를 입력해주세요."
+                )
+                tensorboard_on_button = gr.Button(
+                    value="Tensorboard 실행",
+                    variant="primary"
+                )
+                tensorboard_off_button = gr.Button(
+                    value="Tensorboard 종료",
+                    variant="primary"
+                )
+            tensorboard_result = gr.Textbox(label="결과창")
+            tensorboard_on_button.click(
+                fn=run_tensorboard,
+                inputs=[folder_path],
+                outputs=[tensorboard_result]
+            )
 
 if __name__ == "__main__":
     my_config = Config()
+    if not os.path.isdir("filelists/SP") or not os.path.isdir("filelists/MP"):
+        os.makedirs("filelists/SP", exist_ok=True)
+        os.makedirs("filelists/MP", exist_ok=True)
     webbrowser.open("http://localhost:7860")
     app.launch()

@@ -5,9 +5,9 @@ from tqdm import tqdm
 import sys
 import argparse
 
-#, language=lang
+
 def whisper_script(model, path, lang):
-    segments, info = model.transcribe(path, beam_size=5)
+    segments, info = model.transcribe(path, language=lang, beam_size=5)
     for segment in segments:
         return f"{segment.text[1:]}"
 
