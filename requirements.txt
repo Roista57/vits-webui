@@ -21,4 +21,5 @@ num_thai
 ipython
 gradio
 gdown
-
+faster-whisper==0.3.0
+tqdm

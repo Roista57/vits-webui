@@ -26,6 +26,10 @@ def fix_g2pk2_error(text):
     return new_text
 
 
+def english_cleaners2(text):
+    return english_to_ipa2(text)
+
+
 def japanese_cleaners(text):
     text = japanese_to_romaji_with_accent(text)
     text = re.sub(r'([A-Za-z])$', r'\1.', text)
