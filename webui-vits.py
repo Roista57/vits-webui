@@ -3,7 +3,9 @@ import subprocess
 import sys
 import webbrowser
 import gradio as gr
+import torch
 from text.symbols import cleaner_symbols
+from transcript import run_whisper, run_whisper_tqdm
 
 
 class Config:
@@ -37,35 +39,29 @@ def language_cleaner(speaker, lang):
         my_config.cleaners = "english_cleaners2"
 
 
-def run_write_script(speaker, lang):
+def run_write_script(speaker, lang, tqdm_bool):
     print(f"{speaker}, {lang}")
     if speaker is None or lang is None:
+        print("Speaker 또는 lang을 선택해주세요.")
         return "Speaker 또는 lang을 선택해주세요."
     try:
-        language_cleaner(speaker, lang)
-        result = subprocess.run(
-            [python, "-u", "transcript.py", "--speaker", speaker, "--language", lang],
-            stdout=sys.stdout,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-        )
-        if result.stderr:
-            print(result.stderr)
-            return f"Error: {result.stderr}"
+        if tqdm_bool:
+            my_config.n_speaker = run_whisper_tqdm(speaker, lang)
+        else:
+            my_config.n_speaker = run_whisper(speaker, lang)
+        print("대본 작성 완료!")
+        return "대본 작성 완료!"
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return f"An error occurred: {str(e)}"
 
 
-def run_preprocess(speaker, lang, rand):
+def run_preprocess(speaker, lang, rand, filelist_path):
     if speaker is None or lang is None:
         return "Speaker 또는 lang을 선택해주세요."
-    filelists_train = "filelists/filelist_train.txt"
-    filelists_val = "filelists/filelist_val.txt"
-    if rand or (not os.path.exists(filelists_train) or not os.path.exists(filelists_val)):
+    if rand:
         result = subprocess.run(
-            [python, "random_pick.py", "--filelist", "filelists/filelists.txt"],
+            [python, "random_pick.py", "--filelist", filelist_path],
             stdout=sys.stdout,
             stderr=subprocess.PIPE,
             text=True,
@@ -75,9 +71,15 @@ def run_preprocess(speaker, lang, rand):
             print(result.stderr)
             return f"Error: {result.stderr}"
 
+        print("random_pick을 성공적으로 완료했습니다.!")
+
+        filelists_train = os.path.join(os.path.dirname(filelist_path), "filelist_train.txt")
+        filelists_val = os.path.join(os.path.dirname(filelist_path), "filelist_val.txt")
+
     if my_config.speaker is None or my_config.cleaners is None:
         language_cleaner(speaker, lang)
-
+    if my_config.speaker == 1:
+        my_config.n_speaker = 0
     result = subprocess.run(
         [python, "preprocess.py", "--text_index", my_config.speaker, "--filelists", filelists_train, filelists_val,
          "--text_cleaners", my_config.cleaners],
@@ -86,11 +88,14 @@ def run_preprocess(speaker, lang, rand):
         text=True,
         encoding='utf-8',
     )
-    my_config.train = "filelists/filelist_train_cleaned.txt"
-    my_config.val = "filelists/filelist_val_cleaned.txt"
-    if result.stderr:
-        print(result.stderr)
-        return f"Error: {result.stderr}"
+    """
+    command = rf'start cmd /c venv\scripts\python preprocess.py --text_index {my_config.speaker} --filelists {filelists_train} {filelists_val} --text_cleaners {my_config.cleaners}'
+    subprocess.run(command, shell=True)
+    """
+    my_config.train = filelists_train
+    my_config.val = filelists_val
+    print("Preprocess을 성공적으로 완료되었습니다!")
+    return "random_pick을 성공적으로 완료했습니다!\nPreprocess을 성공적으로 완료되었습니다!"
 
 
 def run_config_json():
@@ -162,12 +167,15 @@ def run_tensorboard(model_path):
 
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
+        gr.Markdown(f'## 현재 사용자의 torch.cuda.is_available() == {torch.cuda.is_available()}\n'
+                    f'- torch.cuda.is_available()이 True라면 그래픽카드를 사용할 수 있음\n'
+                    f'- torch.cuda.is_available()이 Flase라면 그래픽카드를 사용할 수 없음')
         with gr.Column(scale=1):
             gr.Markdown(
                 """
                 ## Step 1: Faster-Whisper를 이용하여 음성 파일들의 대사를 작성합니다.
-                #### 단일 화자라면 filelists/SP 폴더 안에 음성 파일을 넣어주세요.
-                #### 다중 화자라면 filelists/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
+                - 단일 화자라면 filelists/SP 폴더 안에 음성 파일을 넣어주세요.
+                - 다중 화자라면 filelists/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
                 """
             )
             with gr.Row():
@@ -185,12 +193,17 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     interactive=True,
                     info="어떤 언어로 대본을 작성할 것인지 선택해주세요."
                 )
+                tqdm_choice = gr.Checkbox(
+                    label="작업시간만 출력",
+                    value=True,
+                    info="tqdm 라이브러리를 사용하여 작업 종료 시간을 보여줍니다.\n선택하면 번역된 문장들은 보이지 않습니다."
+                )
             with gr.Row():
                 speaker_button = gr.Button(value="대사 추출", variant="primary")
                 speaker_output = gr.Textbox(label="결과창")
             speaker_button.click(
                 fn=run_write_script,
-                inputs=[speaker_choice, language_choice],
+                inputs=[speaker_choice, language_choice, tqdm_choice],
                 outputs=[speaker_output]
             )
 
@@ -200,17 +213,38 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 ## Step 2: Preprocess
                 """
             )
-            preprocess_checkbox = gr.Checkbox(
-                label="random_pick 실행",
-                value=True,
-                info="대사를 train.txt와 val.txt로 나누어 주는 과정입니다."
-            )
+            with gr.Row():
+                preprocess_speaker_choice = gr.Radio(
+                    choices=["Single", "Multi"],
+                    label="화자 선택",
+                    value="Single",
+                    interactive=True,
+                    info="화자가 한 명인 경우 Single, 화자가 여러명이라면 Multi를 선택해주세요."
+                )
+                preprocess_language_choice = gr.Radio(
+                    choices=["ko", "ja", "en"],
+                    label="언어 선택",
+                    value="ko",
+                    interactive=True,
+                    info="어떤 언어로 대본을 전처리할 것인지 선택해주세요."
+                )
+                preprocess_filelist = gr.Textbox(
+                    label="filelists.txt 경로",
+                    value="filelists/filelists.txt",
+                    info = "filelists.txt의 경로를 작성해주세요.",
+                    interactive=True
+                )
+                preprocess_checkbox = gr.Checkbox(
+                    label="random_pick 실행",
+                    value=True,
+                    info="대사를 train.txt와 val.txt로 나누어 주는 과정입니다."
+                )
             with gr.Row():
                 preprocess_button = gr.Button(value="Preprocess 실행", variant="primary")
                 preprocess_textbox = gr.Textbox(label="결과창")
                 preprocess_button.click(
                     fn=run_preprocess,
-                    inputs=[speaker_choice, language_choice, preprocess_checkbox],
+                    inputs=[preprocess_speaker_choice, preprocess_language_choice, preprocess_checkbox, preprocess_filelist],
                     outputs=[preprocess_textbox]
                 )
 
@@ -366,6 +400,14 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 inputs=[folder_path],
                 outputs=[tensorboard_result]
             )
+        gr.Markdown(
+            "Source Reference \n\n"
+            "- [https://github.com/ouor/vits](https://github.com/ouor/vits)\n\n"
+            "- [https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS](https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS)\n\n"
+            "Batch file && Gradio Reference\n\n"
+            "- [https://github.com/litagin02/vits-japros-webui](https://github.com/litagin02/vits-japros-webui)\n\n"
+            "- [https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)\n\n"
+        )
 
 if __name__ == "__main__":
     my_config = Config()
