@@ -134,36 +134,26 @@ def run_create_config(interval, epoch, batch, train, val, cleaners, sampling, n_
 
 def run_train(speaker, config_path, model_path):
     if speaker == 'Single':
-        result = subprocess.run(
-            [python, "-u", "train.py", "-c", config_path, "-m", model_path],
-            stdout=sys.stdout,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-        )
+        command = f'start cmd /k {python} train.py -c {config_path} -m {model_path}'
+        subprocess.run(command, shell=True)
+        return ("단일 화자 학습이 시작되었습니다.\n"
+                "학습은 자동으로 종료되지 않습니다.\n"
+                "원하는 Step에서 Ctrl + C 를 눌러 학습을 종료할 수 있습니다.\n"
+                "학습은 eval interval 마다 모델을 저장합니다.")
     else:
-        result = subprocess.run(
-            [python, "-u", "train_ms.py", "-c", config_path, "-m", model_path],
-            stdout=sys.stdout,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-        )
-    if result.stderr:
-        return f"Error: {result.stderr}"
+        command = f'start cmd /k {python} train_ms.py -c {config_path} -m {model_path}'
+        subprocess.run(command, shell=True)
+        return ("다중 화자 학습이 시작되었습니다.\n"
+                "학습은 자동으로 종료되지 않습니다\n."
+                "원하는 Step에서 Ctrl + C 를 눌러 종료할 수 있습니다.\n"
+                "학습은 eval interval 마다 모델을 저장합니다.")
 
 
 def run_tensorboard(model_path):
     if os.path.isdir(model_path):
-        result = subprocess.run(
-            [python, "tensorboard", "--logdir", model_path, "--host", "0.0.0.0", "--port", "6006"],
-            stdout=sys.stdout,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding='utf-8',
-        )
-        if result.stderr:
-            return f"Error: {result.stderr}"
+        command = rf'start cmd /k venv\scripts\tensorboard.exe --logdir="{model_path}" --host 0.0.0.0 --port 6006'
+        subprocess.run(command, shell=True)
+        webbrowser.open("http://localhost:6006/")
         return "텐서보드가 실행되었습니다."
     else:
         return "모델의 경로가 잘못되었습니다."
@@ -338,8 +328,9 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     )
                     train_model_path = gr.Textbox(
                         label="모델을 저장하는 위치",
-                        value="checkpoint/model",
-                        interactive=True
+                        value="model",
+                        interactive=True,
+                        info="model로 입력한 경우 checkpoints/model 폴더에 저장됩니다."
                     )
                 with gr.Row():
                     train_button = gr.Button(value="Train 실행", variant="primary")
@@ -358,7 +349,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
             with gr.Row():
                 folder_path = gr.Textbox(
                     label="모델 경로",
-                    value="checkpoint/model",
+                    value="checkpoints/model",
                     info="모델을 저장한 경로를 입력해주세요."
                 )
                 tensorboard_on_button = gr.Button(
