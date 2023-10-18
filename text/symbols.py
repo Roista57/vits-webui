@@ -63,6 +63,17 @@ symbols = [cleaner_symbols[default_cleaner]['_pad']] + list(cleaner_symbols[defa
 
 SPACE_ID = symbols.index(" ")
 
+def set_symbols(cleaners):
+    global symbols, SPACE_ID
+    default_cleaner = cleaners
+
+    # 기본 cleaner에 대한 symbols 구성
+    symbols = [cleaner_symbols[default_cleaner]['_pad']] + list(
+        cleaner_symbols[default_cleaner]['_punctuation']) + list(cleaner_symbols[default_cleaner]['_letters'])
+
+    SPACE_ID = symbols.index(" ")
+    print(symbols)
+
 """
 # Export all symbols:
 symbols = ['_pad'] + list(_punctuation) + list(_letters)

@@ -1,4 +1,5 @@
 import argparse
+import webbrowser
 import torch
 from torch import no_grad, LongTensor
 import commons
@@ -60,11 +61,13 @@ def main():
     parser.add_argument("--model_path", required=True, help="path to model file")
     args = parser.parse_args()
 
+    config_path = args.config_path
+    model_path = args.model_path
+
     models_tts = []
     name = 'VITS demo'
     example = '학습은 잘 마치셨나요? 좋은 결과가 있길 바래요.'
-    config_path = args.config_path
-    model_path = args.model_path
+
     hps = utils.get_hparams_from_file(config_path)
     model = SynthesizerTrn(
         len(hps.symbols),
@@ -106,7 +109,8 @@ def main():
             "Reference \n\n"
             "- [https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS](https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS)\n\n"   
         )
-    app.queue(concurrency_count=3).launch(server_name="0.0.0.0", server_port=7860, show_api=False)
+    webbrowser.open("http://localhost:7870")
+    app.queue(concurrency_count=3).launch(server_name="0.0.0.0", server_port=7870, show_api=False)
 
 if __name__ == "__main__":
     main()

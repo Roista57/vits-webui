@@ -37,7 +37,7 @@ from losses import (
     kl_loss
 )
 from mel_processing import mel_spectrogram_torch, spec_to_mel_torch
-from text.symbols import symbols
+from text.symbols import cleaner_symbols
 
 torch.backends.cudnn.benchmark = True
 global_step = 0
@@ -85,7 +85,9 @@ def run(rank, n_gpus, hps):
         eval_loader = DataLoader(eval_dataset, num_workers=12, shuffle=False,
                                  batch_size=hps.train.batch_size, pin_memory=True,
                                  drop_last=False, collate_fn=collate_fn)
-
+    choice_symbols = cleaner_symbols[hps.data.text_cleaners[0]]
+    symbols = [choice_symbols['_pad']] + list(choice_symbols['_punctuation']) + list(choice_symbols['_letters'])
+    print(f"train symbols: {symbols}")
     net_g = SynthesizerTrn(
         len(symbols),
         hps.data.filter_length // 2 + 1,
@@ -115,12 +117,11 @@ def run(rank, n_gpus, hps):
         g_checkpoint_path = utils.latest_checkpoint_path(hps.model_dir, "G_*.pth")
         global_step = int(g_checkpoint_path.split('_')[-1].split('.')[0])
         # global_step = (epoch_str - 1) * len(train_loader)
-        print(
-            f"checkpoint load success global_step : {global_step} epoch_str : {epoch_str} train_loader : {len(train_loader)}")
+        print(f"checkpoint load success global_step : {global_step}, epoch_str : {epoch_str}, train_loader : {len(train_loader)}, symbols len: {len(symbols)}")
     except:
         epoch_str = 1
         global_step = 0
-        print(f"checkpoint load false {global_step}")
+        print(f"checkpoint load false {global_step}, symbols len: {len(symbols)}")
 
     scheduler_g = torch.optim.lr_scheduler.ExponentialLR(optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
     scheduler_d = torch.optim.lr_scheduler.ExponentialLR(optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)

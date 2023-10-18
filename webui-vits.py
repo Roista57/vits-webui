@@ -92,8 +92,8 @@ def run_preprocess(speaker, lang, rand, filelist_path):
     command = rf'start cmd /c venv\scripts\python preprocess.py --text_index {my_config.speaker} --filelists {filelists_train} {filelists_val} --text_cleaners {my_config.cleaners}'
     subprocess.run(command, shell=True)
     """
-    my_config.train = filelists_train
-    my_config.val = filelists_val
+    my_config.train = "".join(filelists_train.split(".")[:-1]) + "_cleaned." + filelists_train.split(".")[-1]
+    my_config.val = "".join(filelists_val.split(".")[:-1]) + "_cleaned." + filelists_val.split(".")[-1]
     print("Preprocess을 성공적으로 완료되었습니다!")
     return "random_pick을 성공적으로 완료했습니다!\nPreprocess을 성공적으로 완료되었습니다!"
 
@@ -163,6 +163,11 @@ def run_tensorboard(model_path):
     else:
         return "모델의 경로가 잘못되었습니다."
 
+
+def run_infer_server(config_path, model_path):
+    command = rf'start cmd /k venv\scripts\python.exe server.py --config_path {config_path} --model_path {model_path}'
+    subprocess.run(command, shell=True)
+    webbrowser.open("http://localhost:7870/")
 
 
 with gr.Blocks(title="VITS-WebUI") as app:
@@ -361,13 +366,13 @@ with gr.Blocks(title="VITS-WebUI") as app:
                         interactive=True
                     )
                     train_model_path = gr.Textbox(
-                        label="모델을 저장하는 위치",
+                        label="모델 이름",
                         value="model",
                         interactive=True,
                         info="model로 입력한 경우 checkpoints/model 폴더에 저장됩니다."
                     )
                 with gr.Row():
-                    train_button = gr.Button(value="Train 실행", variant="primary")
+                    train_button = gr.Button(value="학습 실행", variant="primary")
                     train_textbox = gr.Textbox(label="결과창")
                     train_button.click(
                         fn=run_train,
@@ -390,21 +395,40 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     value="Tensorboard 실행",
                     variant="primary"
                 )
-                tensorboard_off_button = gr.Button(
-                    value="Tensorboard 종료",
-                    variant="primary"
-                )
             tensorboard_result = gr.Textbox(label="결과창")
             tensorboard_on_button.click(
                 fn=run_tensorboard,
                 inputs=[folder_path],
                 outputs=[tensorboard_result]
             )
+        with gr.Column(scale=1):
+            gr.Markdown(
+                """
+                ## Step 6: VITS 추론
+                """
+            )
+            with gr.Row():
+                infer_config_path = gr.Textbox(
+                    label="config.json 경로",
+                    value="checkpoints/model/config.json",
+                    info="config.json 경로를 입력해주세요."
+                )
+                infer_model_path = gr.Textbox(
+                    label="모델 경로",
+                    value="checkpoints/model/G_200000.pth",
+                    info="G_*.pth의 경로를 입력해주세요."
+                )
+                infer_on_button = gr.Button(
+                    value="추론 Webui 실행",
+                    variant="primary"
+                )
+                infer_on_button.click(
+                    fn=run_infer_server,
+                    inputs=[infer_config_path, infer_model_path]
+                )
         gr.Markdown(
             "Source Reference \n\n"
             "- [https://github.com/ouor/vits](https://github.com/ouor/vits)\n\n"
-            "- [https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS](https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS)\n\n"
-            "Batch file && Gradio Reference\n\n"
             "- [https://github.com/litagin02/vits-japros-webui](https://github.com/litagin02/vits-japros-webui)\n\n"
             "- [https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)\n\n"
         )

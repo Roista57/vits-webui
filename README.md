@@ -1,65 +1,66 @@
-# VITS
-## 레포지토리 가져오기
+# vits-webui
+## 사용 방법
+### 1. 레포지토리 가져오기
 ```
-git clone https://github.com/Roista57/VITS.git
-```
-## 모듈 설치
-
-## 파일들
-##### python3.8: https://www.python.org/downloads/release/python-3810/
-##### cmake: https://cmake.org/download/
-##### visual studio build tools: https://visualstudio.microsoft.com/ko/vs/older-downloads/
-##### Cuda Toolkit: https://developer.nvidia.com/cuda-toolkit-archive
-##### cuDNN: https://developer.nvidia.com/rdp/cudnn-archive
-
-```
-pip install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --index-url https://download.pytorch.org/whl/cu117
-pip install -r requirements.txt
-pip install -U pyopenjtalk==0.2.0 --no-build-isolation
-```
-## monotonic_align 설치
-```
-cd monotonic_align
-mkdir monotonic_align
-python setup.py build_ext --inplace
-cd ..
-```
-## filelists.txt를 훈련셋과 검증셋으로 나누기
-```
-python random_pick.py --filelist filelists.txt
-```
-## 훈련셋과 검증셋을 전처리
-### 싱글 스피커
-```
-python preprocess.py --text_index 1 --filelists filelist_train.txt filelist_val.txt --text_cleaners korean_cleaners
-```
-### 멀티 스피커
-```
-python preprocess.py --text_index 2 --filelists filelist_train.txt filelist_val.txt --text_cleaners korean_cleaners
-```
-## 학습
-### 싱글 스피커 학습
-checkpoints는 폴더 명
-```
-python train.py -c config.json -m checkpoints
-```
-### 멀티 스피커 학습
-```
-python train_ms.py -c config.json -m checkpoints
+git clone https://github.com/Roista57/vits-webui.git
 ```
 
-# Runpod VITS
-```
-git clone https://github.com/Roista57/VITS.git
-cd VITS
-pip install torch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 --index-url https://download.pytorch.org/whl/cu117
-pip install -r requirements.txt
-pip install -U pyopenjtalk==0.2.0 --no-build-isolation
+### 2. setup.bat 파일 실행
+- setup.bat 파일 실행 과정에서 오류가 발생한 경우 아래의 프로그램이 설치되어 있는지 확인해주세요.  
+  - python3.8: https://www.python.org/downloads/release/python-3810/
+  - cmake: https://cmake.org/download/  
+  - visual studio build tools 2019: https://visualstudio.microsoft.com/ko/vs/older-downloads/  
+  - Cuda Toolkit: https://developer.nvidia.com/cuda-toolkit-archive  
+  - cuDNN: https://developer.nvidia.com/rdp/cudnn-archive  
 
-cd monotonic_align
-rm -rf ./monotonic_align
-mkdir monotonic_align
-python setup.py build_ext --inplace
-cd ..
+### 3. webui_start.bat 파일 실행
+### 4. 준비한 음성 파일을 filelists/SP 나 filelists/MP 폴더에 넣습니다.
+- 단일 화자의 음성을 준비한 경우 SP폴더에 다음과 같이 넣습니다.
+  - ```commandline
+    filelists/SP
+     └ audio1.wav
+     └ audio2.wav
+     └ audio3.wav
+     └ audio4.wav
+    ...
+    ```
+- 다중 화자의 음성을 준비한 경우에는 MP폴더에 다음과 같이 넣습니다.
+  - ```commandline
+    filelists/SP
+     └ folder_1
+       └ audio1.wav
+       └ audio2.wav
+       ...
+     └ folder_2
+       └ audio1.wav
+       └ audio2.wav
+       ...
+     ...
+      ```
+### Step 1 : 대본 작성
+- 단일 화자인 경우 Single, 다중 화자인 경우 Multi를 선택한 뒤 음성 파일의 언어를 선택한 후 대사 추출 버튼을 실행합니다. (음성 파일마다 작성되는 대사를 보고 싶다면 작업시간만 출력 체크박스를 해제한 뒤 실행하시면 됩니다.)
+![img.png](readmeImage/img.png)
 
-```
+### Step 2 : Preprocess 실행
+- 화자, 언어를 Step 1에서 했던 값과 동일하게 설정한 뒤 Preprocess 실행 버튼을 실행합니다.
+   - 대사 추출 기능을 사용하지 않고 자신이 가지고 있는 대본 파일을 사용하는 경우 filelists.txt 경로에 자신의 대본 텍스트 파일의 경로를 입력한 뒤 화자, 언어를 선택한 뒤 Preprocess 실행 버튼을 실행합니다.
+
+  ![img.png](readmeImage/img_1.png)
+
+### Step 3 : config.json 작성
+- 위의 Step 1과 Step 2 과정을 진행했다면 새로 고침 버튼을 눌러준 뒤 sampling_rate 와 n_speakers, speaker_name을 작성한 뒤 Create config.json 버튼을 실행해주세요.
+![img_1.png](readmeImage/img_2.png)
+
+### Step 4 : VITS 학습
+- 화자를 선택, 모델 이름을 작성한 뒤 학습 실행 버튼을 실행합니다.
+- 새 명령 프롬프트에서 학습이 실행됩니다.
+- VITS 학습을 종료하려면 Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
+![img_2.png](readmeImage/img_3.png)
+
+### Step 5 : Tensorboard 실행
+- 모델 경로에 chekcpoints/모델 이름 형태로 작성한 뒤에 Tensorboard 실행 버튼을 눌러주세요.
+- Tensorboard는 새 명령 프롬프트에서 실행됩니다.
+- Tensorboard를 종료하려면  Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
+![img_3.png](readmeImage/img_4.png)
+
+### Step 6 : 추론

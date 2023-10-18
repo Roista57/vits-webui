@@ -10,14 +10,16 @@ def _update_symbols(cleaner_name):
     """ Update symbols based on cleaner """
     global _symbol_to_id, _id_to_symbol
     if cleaner_name in cleaner_symbols:
-        current_symbols = [cleaner_symbols[cleaner_name]['_pad']] + list(cleaner_symbols[cleaner_name]['_punctuation']) + list(cleaner_symbols[cleaner_name]['_letters'])
+        choice_symbols = cleaner_symbols[cleaner_name]
+        current_symbols = [choice_symbols['_pad']] + list(choice_symbols['_punctuation']) + list(choice_symbols['_letters'])
         _symbol_to_id = {s: i for i, s in enumerate(current_symbols)}
         _id_to_symbol = {i: s for i, s in enumerate(current_symbols)}
+        print(f"=========\n{_symbol_to_id}\n\n{_symbol_to_id}\n\n")
 
 def text_to_sequence(text, cleaner_names):
     '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.'''
     sequence = []
-    print(f"__init__.py cleaner_names : {cleaner_names}")
+    print(f"++++++++++++++++++++++++++++  __init__.py cleaner_names : {cleaner_names}  ++++++++++++++++++++++++++++")
     clean_text = _clean_text(text, cleaner_names)
 
     # Update symbols for the current cleaner

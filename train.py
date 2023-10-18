@@ -1,21 +1,15 @@
+import logging
 import os
-import json
-import argparse
-import itertools
-import math
+
 import torch
-from torch import nn, optim
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from torch.cuda.amp import autocast, GradScaler
 from torch.nn import functional as F
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import torch.multiprocessing as mp
-import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm
-
-import librosa
-import logging
 
 logging.getLogger('numba').setLevel(logging.WARNING)
 
@@ -37,13 +31,16 @@ from losses import (
     kl_loss
 )
 from mel_processing import mel_spectrogram_torch, spec_to_mel_torch
-from text.symbols import symbols
+from text.symbols import set_symbols
+from text import _update_symbols
+
 
 torch.backends.cudnn.benchmark = True
 global_step = 0
 
 
 def main():
+
     """Assume Single Node Multi GPUs Training Only"""
     assert torch.cuda.is_available(), "CPU training is not allowed."
 
@@ -52,6 +49,9 @@ def main():
     os.environ['MASTER_PORT'] = '8000'
 
     hps = utils.get_hparams()
+    set_symbols(hps.data.text_cleaners[0])
+    _update_symbols(hps.data.text_cleaners[0])
+
     mp.spawn(run, nprocs=n_gpus, args=(n_gpus, hps,))
 
 
@@ -85,7 +85,9 @@ def run(rank, n_gpus, hps):
         eval_loader = DataLoader(eval_dataset, num_workers=8, shuffle=False,
                                  batch_size=hps.train.batch_size, pin_memory=True,
                                  drop_last=False, collate_fn=collate_fn)
+    from text.symbols import symbols
 
+    print(f"train symbols: {symbols}")
     net_g = SynthesizerTrn(
         len(symbols),
         hps.data.filter_length // 2 + 1,
@@ -113,14 +115,15 @@ def run(rank, n_gpus, hps):
         g_checkpoint_path = utils.latest_checkpoint_path(hps.model_dir, "G_*.pth")
         global_step = int(g_checkpoint_path.split('_')[-1].split('.')[0])
         # global_step = (epoch_str - 1) * len(train_loader)
-        print(f"checkpoint load success global_step : {global_step} epoch_str : {epoch_str} train_loader : {len(train_loader)}")
+        print(f"checkpoint load success global_step : {global_step}, epoch_str : {epoch_str}, train_loader : {len(train_loader)}, symbols len: {len(symbols)}")
     except:
         epoch_str = 1
         global_step = 0
-        print(f"checkpoint load false {global_step}")
+        print(f"checkpoint load false {global_step}, symbols len: {len(symbols)}")
 
     scheduler_g = torch.optim.lr_scheduler.ExponentialLR(optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
     scheduler_d = torch.optim.lr_scheduler.ExponentialLR(optim_d, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2)
+    print("TEST")
 
     scaler = GradScaler(enabled=hps.train.fp16_run)
 
