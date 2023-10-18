@@ -14,7 +14,6 @@ def _update_symbols(cleaner_name):
         current_symbols = [choice_symbols['_pad']] + list(choice_symbols['_punctuation']) + list(choice_symbols['_letters'])
         _symbol_to_id = {s: i for i, s in enumerate(current_symbols)}
         _id_to_symbol = {i: s for i, s in enumerate(current_symbols)}
-        print(f"=========\n{_symbol_to_id}\n\n{_symbol_to_id}\n\n")
 
 def text_to_sequence(text, cleaner_names):
     '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.'''

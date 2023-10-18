@@ -1,3 +1,13 @@
+import json
+
+
+# 설정 파일에서 설정 로드
+def load_settings(json_file):
+    with open(json_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
+
 '''
 Defines the set of symbols used in text input to the model.
 '''
@@ -56,28 +66,11 @@ cleaner_symbols = {
 
 }
 
-default_cleaner = 'japanese_cleaners2'
+settings_file = 'setting.json'
+settings = load_settings(settings_file)
+default_cleaner = settings['text_cleaners'][0]
 
 # 기본 cleaner에 대한 symbols 구성
 symbols = [cleaner_symbols[default_cleaner]['_pad']] + list(cleaner_symbols[default_cleaner]['_punctuation']) + list(cleaner_symbols[default_cleaner]['_letters'])
 
 SPACE_ID = symbols.index(" ")
-
-def set_symbols(cleaners):
-    global symbols, SPACE_ID
-    default_cleaner = cleaners
-
-    # 기본 cleaner에 대한 symbols 구성
-    symbols = [cleaner_symbols[default_cleaner]['_pad']] + list(
-        cleaner_symbols[default_cleaner]['_punctuation']) + list(cleaner_symbols[default_cleaner]['_letters'])
-
-    SPACE_ID = symbols.index(" ")
-    print(symbols)
-
-"""
-# Export all symbols:
-symbols = ['_pad'] + list(_punctuation) + list(_letters)
-
-# Special symbol ids
-SPACE_ID = symbols.index(" ")
-"""

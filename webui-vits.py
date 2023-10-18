@@ -1,4 +1,5 @@
 import os
+import json
 import subprocess
 import sys
 import webbrowser
@@ -112,8 +113,6 @@ def run_config_json():
 
 
 def run_create_config(interval, epoch, batch, train, val, cleaners, sampling, n_speaker, names):
-    import json
-
     with open('example/configs/config.json', 'r', encoding='utf-8') as f:
         config = json.load(f)
 
@@ -138,6 +137,15 @@ def run_create_config(interval, epoch, batch, train, val, cleaners, sampling, n_
 
 
 def run_train(speaker, config_path, model_path):
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    cleaners = config['data']["text_cleaners"][0]
+    with open('setting.json', 'r') as f:
+        setting = json.load(f)
+    setting['text_cleaners'] = [cleaners]
+    with open('setting.json', 'w') as f:
+        json.dump(setting, f, ensure_ascii=True, indent=2)
+
     if speaker == 'Single':
         command = f'start cmd /k {python} train.py -c {config_path} -m {model_path}'
         subprocess.run(command, shell=True)
