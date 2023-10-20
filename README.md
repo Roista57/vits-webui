@@ -18,24 +18,23 @@ git clone https://github.com/Roista57/vits-webui.git
 - 단일 화자의 음성을 준비한 경우 SP폴더에 다음과 같이 넣습니다.
   - ```commandline
     filelists/SP
-     └ audio1.wav
-     └ audio2.wav
-     └ audio3.wav
-     └ audio4.wav
-    ...
+    ├─audio1.wav
+    ├─audio2.wav
+    ├─audio3.wav
+    ├─audio4.wav
+    └─...
     ```
 - 다중 화자의 음성을 준비한 경우에는 MP폴더에 다음과 같이 넣습니다.
   - ```commandline
-    filelists/SP
-     └ folder_1
-       └ audio1.wav
-       └ audio2.wav
-       ...
-     └ folder_2
-       └ audio1.wav
-       └ audio2.wav
-       ...
-     ...
+    filelists/MP
+    ├─speaker_1
+    │  ├─audio1.wav
+    │  ├─audio2.wav
+    │  └─...
+    └─speaker_2
+       ├─audio1.wav
+       ├─audio2.wav
+       └─...
       ```
 ### Step 1 : 대본 작성
 - 단일 화자인 경우 Single, 다중 화자인 경우 Multi를 선택한 뒤 음성 파일의 언어를 선택한 후 대사 추출 버튼을 실행합니다. (음성 파일마다 작성되는 대사를 보고 싶다면 작업시간만 출력 체크박스를 해제한 뒤 실행하시면 됩니다.)
@@ -62,5 +61,3 @@ git clone https://github.com/Roista57/vits-webui.git
 - Tensorboard는 새 명령 프롬프트에서 실행됩니다.
 - Tensorboard를 종료하려면  Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
 ![img_3.png](readmeImage/img_4.png)
-
-### Step 6 : 추론

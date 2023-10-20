@@ -109,7 +109,6 @@ def main():
             "Reference \n\n"
             "- [https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS](https://huggingface.co/spaces/kdrkdrkdr/ProsekaTTS)\n\n"   
         )
-    webbrowser.open("http://localhost:7870")
     app.queue(concurrency_count=3).launch(server_name="0.0.0.0", server_port=7870, show_api=False)
 
 if __name__ == "__main__":

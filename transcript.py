@@ -1,3 +1,4 @@
+import faster_whisper
 from faster_whisper import WhisperModel
 import os
 import torch
@@ -5,6 +6,7 @@ from tqdm import tqdm
 import sys
 
 
+# faster_whisper를 사용하여 음성 파일을 읽은 뒤 대사를 반환합니다.
 def whisper_script(model, path, lang):
     segments, info = model.transcribe(path, language=lang, beam_size=5)
     for segment in segments:
@@ -15,6 +17,7 @@ def whisper_script(model, path, lang):
             return text
 
 
+# 추출된 대사를 보여주지만 예측하는 작업 종료시간을 보여주지 않습니다.
 def run_whisper(speaker, lang):
     model_size = "large-v2"
     if torch.cuda.is_available():
@@ -63,14 +66,19 @@ def run_whisper(speaker, lang):
                 else:
                     for subdir in subdirs:
                         subdir_path = os.path.join(speaker_path, subdir)
-                        wav_files = [f for f in os.listdir(subdir_path) if f.endswith('.wav')]
-                        for wav in wav_files:
-                            full_wav_path = os.path.join(subdir_path, wav)
-                            text = whisper_script(model, full_wav_path, lang)
-                            print(f"{speaker_path}/{wav}|{idx}|{text}")
-                            output.write(f"{speaker_path}/{wav}|{idx}|{text}\n")
+                        for root, dirs, files in os.walk(subdir_path):
+                            # 현재 폴더가 하위 폴더를 가지고 있지 않은 경우 (즉, 가장 깊은 수준의 폴더)
+                            if not dirs:
+                                wav_files = [f for f in files if f.endswith('.wav')]
+                                for wav in wav_files:
+                                    full_wav_path = os.path.join(root, wav)
+                                    text = whisper_script(model, full_wav_path, lang)  # whisper_script는 음성 파일을 처리하는 함수로 가정합니다.
+                                    print(f"{root}/{wav}|{idx}|{text}")
+                                    output.write(f"{root}/{wav}|{idx}|{text}\n")
         return len(speakers)
 
+
+# tqdm을 사용하여 작업 종료시간을 예측해주지만 추출된 대사를 보여주지 않습니다.
 def run_whisper_tqdm(speaker, lang):
     model_size = "large-v2"
     if torch.cuda.is_available():
@@ -120,10 +128,13 @@ def run_whisper_tqdm(speaker, lang):
                 else:
                     for subdir in subdirs:
                         subdir_path = os.path.join(speaker_path, subdir)
-                        wav_files = [f for f in os.listdir(subdir_path) if f.endswith('.wav')]
-                        for wav in tqdm(wav_files, desc=subdir_path):
-                            full_wav_path = os.path.join(subdir_path, wav)
-                            text = whisper_script(model, full_wav_path, lang)
-                            # print(f"{speaker_path}/{wav}|{idx}|{text}")
-                            output.write(f"{speaker_path}/{wav}|{idx}|{text}\n")
+                        for root, dirs, files in os.walk(subdir_path):
+                            # 현재 폴더가 하위 폴더를 가지고 있지 않은 경우 (즉, 가장 깊은 수준의 폴더)
+                            if not dirs:
+                                wav_files = [f for f in files if f.endswith('.wav')]
+                                for wav in tqdm(wav_files, desc=subdir_path):
+                                    full_wav_path = os.path.join(root, wav)
+                                    text = whisper_script(model, full_wav_path, lang)  # whisper_script는 음성 파일을 처리하는 함수로 가정합니다.
+                                    # print(f"{root}/{wav}|{idx}|{text}")
+                                    output.write(f"{root}/{wav}|{idx}|{text}\n")
         return len(speakers)

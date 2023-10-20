@@ -2,6 +2,7 @@ import os
 import json
 import subprocess
 import sys
+import time
 import webbrowser
 import gradio as gr
 import torch
@@ -27,6 +28,11 @@ class Config:
 python = sys.executable
 
 
+def run_adjust_volume():
+    command = rf'start cmd /k venv\scripts\python.exe server.py --config_path {config_path} --model_path {model_path}'
+    subprocess.run(command, shell=True)
+
+
 def language_cleaner(speaker, lang):
     if speaker == 'Single':
         my_config.speaker = '1'
@@ -40,6 +46,7 @@ def language_cleaner(speaker, lang):
         my_config.cleaners = "english_cleaners2"
 
 
+# 대본 추출 버튼을 누르면 transcript에서 대본 작성을 진행합니다.
 def run_write_script(speaker, lang, tqdm_bool):
     print(f"{speaker}, {lang}")
     if speaker is None or lang is None:
@@ -57,6 +64,9 @@ def run_write_script(speaker, lang, tqdm_bool):
         return f"An error occurred: {str(e)}"
 
 
+# Preprocess 실행 버튼을 누르면 random_pick을 이용하여
+# filelists.txt 파일을 filelist_train.txt와 filelist_val.txt로 나눕니다.
+# 이후 preprocess.py를 이용하여 각 train파일과 val파일을 전처리 해줍니다.
 def run_preprocess(speaker, lang, rand, filelist_path):
     if speaker is None or lang is None:
         return "Speaker 또는 lang을 선택해주세요."
@@ -89,16 +99,13 @@ def run_preprocess(speaker, lang, rand, filelist_path):
         text=True,
         encoding='utf-8',
     )
-    """
-    command = rf'start cmd /c venv\scripts\python preprocess.py --text_index {my_config.speaker} --filelists {filelists_train} {filelists_val} --text_cleaners {my_config.cleaners}'
-    subprocess.run(command, shell=True)
-    """
     my_config.train = "".join(filelists_train.split(".")[:-1]) + "_cleaned." + filelists_train.split(".")[-1]
     my_config.val = "".join(filelists_val.split(".")[:-1]) + "_cleaned." + filelists_val.split(".")[-1]
     print("Preprocess을 성공적으로 완료되었습니다!")
     return "random_pick을 성공적으로 완료했습니다!\nPreprocess을 성공적으로 완료되었습니다!"
 
 
+# 새로 고침을 누르면 my_config에 있던 값들을 반환합니다.
 def run_config_json():
     return (
         my_config.eval_interval,
@@ -112,6 +119,7 @@ def run_config_json():
     )
 
 
+# example/configs/config.json를 불러온 뒤 아래의 값을 수정하고 filelists/config.json으로 저장합니다.
 def run_create_config(interval, epoch, batch, train, val, cleaners, sampling, n_speaker, names):
     with open('example/configs/config.json', 'r', encoding='utf-8') as f:
         config = json.load(f)
@@ -136,7 +144,10 @@ def run_create_config(interval, epoch, batch, train, val, cleaners, sampling, n_
     return "filelists/config.json 이 생성되었습니다."
 
 
-def run_train(speaker, config_path, model_path):
+# text/symbols.py의 symbols를 사용자의 데이터에 맞게 변경하기 위해 setting.json이라는 파일을 사용하고 있습니다.
+# filelists/config.json 파일의 text_cleaners 값을 읽은 뒤 setting.json 파일의 text_cleaners 값에 저장합니다.
+# text/symbols.py 에서는 setting.json 의 text_cleaners 값을 읽어 symbols를 만듭니다.
+def text_cleaners_change(config_path):
     with open(config_path, 'r', encoding='utf-8') as f:
         config = json.load(f)
     cleaners = config['data']["text_cleaners"][0]
@@ -146,6 +157,10 @@ def run_train(speaker, config_path, model_path):
     with open('setting.json', 'w') as f:
         json.dump(setting, f, ensure_ascii=True, indent=2)
 
+
+# 학습 실행 버튼을 누르면 실행되는 함수입니다.
+def run_train(speaker, config_path, model_path):
+    text_cleaners_change(config_path)
     if speaker == 'Single':
         command = f'start cmd /k {python} train.py -c {config_path} -m {model_path}'
         subprocess.run(command, shell=True)
@@ -162,22 +177,28 @@ def run_train(speaker, config_path, model_path):
                 "학습은 eval interval 마다 모델을 저장합니다.")
 
 
+# Tensorboard 실행을 누르면 동작하는 함수입니다.
 def run_tensorboard(model_path):
     if os.path.isdir(model_path):
         command = rf'start cmd /k venv\scripts\tensorboard.exe --logdir="{model_path}" --host 0.0.0.0 --port 6006'
         subprocess.run(command, shell=True)
+        time.sleep(2)
         webbrowser.open("http://localhost:6006/")
         return "텐서보드가 실행되었습니다."
     else:
         return "모델의 경로가 잘못되었습니다."
 
 
+# 추론 Webui 실행을 누르면 동작하는 함수입니다.
 def run_infer_server(config_path, model_path):
+    text_cleaners_change(config_path)
     command = rf'start cmd /k venv\scripts\python.exe server.py --config_path {config_path} --model_path {model_path}'
     subprocess.run(command, shell=True)
+    time.sleep(2)
     webbrowser.open("http://localhost:7870/")
 
 
+# 아래는 Gardio를 사용한 Webui 코드입니다.
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
         gr.Markdown(f'## 현재 사용자의 torch.cuda.is_available() == {torch.cuda.is_available()}\n'
@@ -186,7 +207,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
         with gr.Column(scale=1):
             gr.Markdown(
                 """
-                ## Step 1: Faster-Whisper를 이용하여 음성 파일들의 대사를 작성합니다.
+                ## Step 1: Faster-Whisper를 이용하여 음성 파일들의 대본를 작성합니다.
                 - 단일 화자라면 filelists/SP 폴더 안에 음성 파일을 넣어주세요.
                 - 다중 화자라면 filelists/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
                 """
@@ -212,7 +233,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     info="tqdm 라이브러리를 사용하여 작업 종료 시간을 보여줍니다.\n선택하면 번역된 문장들은 보이지 않습니다."
                 )
             with gr.Row():
-                speaker_button = gr.Button(value="대사 추출", variant="primary")
+                speaker_button = gr.Button(value="대본 추출", variant="primary")
                 speaker_output = gr.Textbox(label="결과창")
             speaker_button.click(
                 fn=run_write_script,
@@ -250,7 +271,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 preprocess_checkbox = gr.Checkbox(
                     label="random_pick 실행",
                     value=True,
-                    info="대사를 train.txt와 val.txt로 나누어 주는 과정입니다."
+                    info="대본를 train.txt와 val.txt로 나누어 주는 과정입니다."
                 )
             with gr.Row():
                 preprocess_button = gr.Button(value="Preprocess 실행", variant="primary")
@@ -443,6 +464,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
 
 if __name__ == "__main__":
     my_config = Config()
+    # filelists/SP와 filelists/MP 중 하나라도 없는 경우 폴더를 만듭니다.
     if not os.path.isdir("filelists/SP") or not os.path.isdir("filelists/MP"):
         os.makedirs("filelists/SP", exist_ok=True)
         os.makedirs("filelists/MP", exist_ok=True)

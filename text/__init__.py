@@ -18,12 +18,11 @@ def _update_symbols(cleaner_name):
 def text_to_sequence(text, cleaner_names):
     '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.'''
     sequence = []
-    print(f"++++++++++++++++++++++++++++  __init__.py cleaner_names : {cleaner_names}  ++++++++++++++++++++++++++++")
     clean_text = _clean_text(text, cleaner_names)
 
     # Update symbols for the current cleaner
-    if cleaner_names:
-        _update_symbols(cleaner_names[0])
+    # if cleaner_names:
+    #     _update_symbols(cleaner_names[0])
 
     for symbol in clean_text:
         if symbol not in _symbol_to_id.keys():
