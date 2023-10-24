@@ -184,7 +184,7 @@ def run_tensorboard(model_path):
 # 추론 Webui 실행을 누르면 동작하는 함수입니다.
 def run_infer_server(config_path, model_path):
     text_cleaners_change(config_path)
-    command = rf'start cmd /k venv\scripts\python.exe server.py --config_path {config_path} --model_path {model_path}'
+    command = rf'start cmd /k {python} server.py --config_path {config_path} --model_path {model_path}'
     subprocess.run(command, shell=True)
     time.sleep(2)
     webbrowser.open("http://localhost:7870/")
