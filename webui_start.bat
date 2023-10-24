@@ -1,7 +1,10 @@
 @echo off
 
+echo Activating Miniconda environment...
+call conda activate "%cd%\venv"
+
 echo Running vits-webui...
-venv\Scripts\python webui-vits.py
+python webui-vits.py
 
 if errorlevel 1 (
     echo Error: Failed to run vits-webui.

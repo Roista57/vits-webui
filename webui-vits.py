@@ -28,11 +28,6 @@ class Config:
 python = sys.executable
 
 
-def run_adjust_volume():
-    command = rf'start cmd /k venv\scripts\python.exe server.py --config_path {config_path} --model_path {model_path}'
-    subprocess.run(command, shell=True)
-
-
 def language_cleaner(speaker, lang):
     if speaker == 'Single':
         my_config.speaker = '1'
@@ -87,8 +82,7 @@ def run_preprocess(speaker, lang, rand, filelist_path):
         filelists_train = os.path.join(os.path.dirname(filelist_path), "filelist_train.txt")
         filelists_val = os.path.join(os.path.dirname(filelist_path), "filelist_val.txt")
 
-    if my_config.speaker is None or my_config.cleaners is None:
-        language_cleaner(speaker, lang)
+    language_cleaner(speaker, lang)
     if my_config.speaker == 1:
         my_config.n_speaker = 0
     result = subprocess.run(
