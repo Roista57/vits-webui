@@ -37,8 +37,6 @@ def language_cleaner(speaker, lang):
         my_config.cleaners = "korean_cleaners"
     elif lang == 'ja':
         my_config.cleaners = "japanese_cleaners2"
-    elif lang == 'en':
-        my_config.cleaners = "english_cleaners2"
 
 
 # 대본 추출 버튼을 누르면 transcript에서 대본 작성을 진행합니다.
@@ -215,7 +213,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     info="화자가 한 명인 경우 Single, 화자가 여러명이라면 Multi를 선택해주세요."
                 )
                 language_choice = gr.Radio(
-                    choices=["ko", "ja", "en"],
+                    choices=["ko", "ja"],
                     label="언어 선택",
                     value="ko",
                     interactive=True,
@@ -250,7 +248,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     info="화자가 한 명인 경우 Single, 화자가 여러명이라면 Multi를 선택해주세요."
                 )
                 preprocess_language_choice = gr.Radio(
-                    choices=["ko", "ja", "en"],
+                    choices=["ko", "ja"],
                     label="언어 선택",
                     value="ko",
                     interactive=True,
