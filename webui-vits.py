@@ -453,6 +453,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
         gr.Markdown(
             "Source Reference \n\n"
             "- [https://github.com/ouor/vits](https://github.com/ouor/vits)\n\n"
+            "Batch File Source Reference \n\n"
             "- [https://github.com/litagin02/vits-japros-webui](https://github.com/litagin02/vits-japros-webui)\n\n"
             "- [https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)\n\n"
         )
