@@ -38,26 +38,32 @@ git clone https://github.com/Roista57/vits-webui.git
       ```
 ### Step 1 : 대본 작성
 - 단일 화자인 경우 Single, 다중 화자인 경우 Multi를 선택한 뒤 음성 파일의 언어를 선택한 후 대사 추출 버튼을 실행합니다. (음성 파일마다 작성되는 대사를 보고 싶다면 작업시간만 출력 체크박스를 해제한 뒤 실행하시면 됩니다.)
-![img.png](readmeImage/img.png)
+![img.png](readmeImage/step1.png)
 
 ### Step 2 : Preprocess 실행
 - 화자, 언어를 Step 1에서 했던 값과 동일하게 설정한 뒤 Preprocess 실행 버튼을 실행합니다.
    - 대사 추출 기능을 사용하지 않고 자신이 가지고 있는 대본 파일을 사용하는 경우 filelists.txt 경로에 자신의 대본 텍스트 파일의 경로를 입력한 뒤 화자, 언어를 선택한 뒤 Preprocess 실행 버튼을 실행합니다.
 
-  ![img.png](readmeImage/img_1.png)
+  ![img.png](readmeImage/step2.png)
 
 ### Step 3 : config.json 작성
 - 위의 Step 1과 Step 2 과정을 진행했다면 새로 고침 버튼을 눌러준 뒤 sampling_rate 와 n_speakers, speaker_name을 작성한 뒤 Create config.json 버튼을 실행해주세요.
-![img_1.png](readmeImage/img_2.png)
+![img.png](readmeImage/step3.png)
 
 ### Step 4 : VITS 학습
 - 화자를 선택, 모델 이름을 작성한 뒤 학습 실행 버튼을 실행합니다.
 - 새 명령 프롬프트에서 학습이 실행됩니다.
 - VITS 학습을 종료하려면 Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
-![img_2.png](readmeImage/img_3.png)
+![img.png](readmeImage/step4.png)
 
 ### Step 5 : Tensorboard 실행
 - 모델 경로에 chekcpoints/모델 이름 형태로 작성한 뒤에 Tensorboard 실행 버튼을 눌러주세요.
 - Tensorboard는 새 명령 프롬프트에서 실행됩니다.
 - Tensorboard를 종료하려면  Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
-![img_3.png](readmeImage/img_4.png)
+![img.png](readmeImage/step5.png)
+
+### Step 6 : VITS 추론
+- config.json 경로와 모델 경로에 추론하고자 하는 json, pth의 경로를 입력합니다.
+- 추론 Webui 실행을 누르면 server.py를 실행합니다.
+- Tensorboard를 종료하려면  Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
+![img.png](readmeImage/step6.png)
