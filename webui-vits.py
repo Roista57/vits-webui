@@ -301,7 +301,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     label="batch_size",
                     value="16",
                     interactive=True,
-                    info="뭐라 설명할지 모르겠네"
+                    info="한 번에 처리하는 데이터 양"
                 )
                 config_training_files = gr.Textbox(
                     label="training_files",
