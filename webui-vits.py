@@ -46,12 +46,15 @@ def run_write_script(speaker, lang, tqdm_bool):
         print("Speaker 또는 lang을 선택해주세요.")
         return "Speaker 또는 lang을 선택해주세요."
     try:
-        if tqdm_bool:
-            my_config.n_speaker = run_whisper_tqdm(speaker, lang)
+        command = f'start cmd /c {python} transcript.py --speaker {speaker} --language {lang} --tqdm {tqdm_bool}'
+        result = subprocess.run(command, shell=True)
+        if result.returncode == 0:
+            print("대본 작성 완료!")
+            return "대본 작성 완료!"
         else:
-            my_config.n_speaker = run_whisper(speaker, lang)
-        print("대본 작성 완료!")
-        return "대본 작성 완료!"
+            print("외부 명령 실행 중 오류가 발생했습니다.", result.returncode)
+            return f"외부 명령 실행 중 오류가 발생했습니다. {result.returncode}"
+
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return f"An error occurred: {str(e)}"
@@ -436,7 +439,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 )
                 infer_model_path = gr.Textbox(
                     label="모델 경로",
-                    value="checkpoints/model/G_200000.pth",
+                    value="checkpoints/model/G_*.pth",
                     info="G_*.pth의 경로를 입력해주세요."
                 )
                 infer_on_button = gr.Button(

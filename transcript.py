@@ -2,6 +2,7 @@ import faster_whisper
 from faster_whisper import WhisperModel
 import os
 import torch
+import argparse
 from tqdm import tqdm
 import sys
 
@@ -42,7 +43,6 @@ def run_whisper(speaker, lang):
                 text = whisper_script(model, wav, lang)
                 print(f"{wav}|{text}")
                 output.write(f"{wav}|{text}\n")
-        return 0
 
     elif speaker == 'Multi':
         print("다중 화자 대사 작업 시작")
@@ -75,7 +75,6 @@ def run_whisper(speaker, lang):
                                     text = whisper_script(model, full_wav_path, lang)  # whisper_script는 음성 파일을 처리하는 함수로 가정합니다.
                                     print(f"{root}/{wav}|{idx}|{text}")
                                     output.write(f"{root}/{wav}|{idx}|{text}\n")
-        return len(speakers)
 
 
 # tqdm을 사용하여 작업 종료시간을 예측해주지만 추출된 대사를 보여주지 않습니다.
@@ -103,7 +102,6 @@ def run_whisper_tqdm(speaker, lang):
                 text = whisper_script(model, wav, lang)
                 # print(f"{wav}|{text}")
                 output.write(f"{wav}|{text}\n")
-        return 0
 
     elif speaker == 'Multi':
         print("다중 화자 대사 작업 시작")
@@ -137,4 +135,20 @@ def run_whisper_tqdm(speaker, lang):
                                     text = whisper_script(model, full_wav_path, lang)  # whisper_script는 음성 파일을 처리하는 함수로 가정합니다.
                                     # print(f"{root}/{wav}|{idx}|{text}")
                                     output.write(f"{root}/{wav}|{idx}|{text}\n")
-        return len(speakers)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--speaker", type=str)
+    parser.add_argument("--language", type=str)
+    parser.add_argument("--tqdm", type=str)
+
+    args = parser.parse_args()
+
+    speaker = args.speaker
+    lang = args.language
+    run_tqdm = args.tqdm
+
+    if run_tqdm == 'True':
+        run_whisper_tqdm(speaker, lang)
+    else:
+        run_whisper(speaker, lang)
