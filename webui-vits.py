@@ -193,12 +193,68 @@ def run_infer_server(config_path, model_path):
     webbrowser.open("http://localhost:7870/")
 
 
+def run_ffmpeg(volume, sampling_rate):
+    if is_ffmpeg():
+        command = f'start cmd /k {python} adjust_volume.py -v {int(volume)} -sr {int(sampling_rate)}'
+        subprocess.run(command, shell=True)
+
+
+def is_ffmpeg():
+    if os.path.isfile("ffmpeg/bin/ffmpeg.exe"):
+        return True
+    else:
+        return False
+
+
+def refresh_ffmpeg():
+    if is_ffmpeg():
+        return "### ffmpeg : True"
+    else:
+        return "### ffmpeg : False"
+
 # 아래는 Gardio를 사용한 Webui 코드입니다.
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
-        gr.Markdown(f'## 현재 사용자의 torch.cuda.is_available() == {torch.cuda.is_available()}\n'
-                    f'- torch.cuda.is_available()이 True라면 그래픽카드를 사용할 수 있음\n'
-                    f'- torch.cuda.is_available()이 Flase라면 그래픽카드를 사용할 수 없음')
+        with gr.Column(scale=1):
+            gr.Markdown(
+                """
+                ## FFmpeg를 이용하여 Sampling_rate 변경과 볼륨 평준화(.wav, .mp3만 가능)
+                - 변경하고자 하는 음성 파일을 audio/input 폴더에 넣어주세요.
+                - Sampling rate와 목표 볼륨을 설정해주세요.
+                """
+            )
+            with gr.Row():
+                ffmpeg_path = is_ffmpeg()
+                ffmpeg_info_markdown = gr.Markdown(f"### ffmpeg : {ffmpeg_path}")
+                ffmpeg_refresh_button = gr.Button(value="새로고침", variant="primary")
+                ffmpeg_refresh_button.click(
+                    fn=refresh_ffmpeg,
+                    outputs=ffmpeg_info_markdown
+                )
+            with gr.Row():
+                sampling_rate_choice = gr.Radio(
+                    label="Sampling rate",
+                    choices=[22050, 44100],
+                    value=22050,
+                    interactive=True,
+                    info="변경할 샘플링 레이트를 선택해주세요."
+                )
+                volume_dest_choice = gr.Number(
+                    label="목표 볼륨",
+                    value=-25,
+                    minimum=-50,
+                    maximum=0,
+                    step=1,
+                    interactive=True,
+                    info="평준화를 하기 위한 목표 볼륨을 작성해주세요. (-50 ~ 0) 사이로 작성해주세요."
+                )
+                ffmpeg_button = gr.Button(value="음성 변환", variant="primary")
+                ffmpeg_button.click(
+                    fn=run_ffmpeg,
+                    inputs=[volume_dest_choice, sampling_rate_choice]
+                )
+
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -235,6 +291,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 inputs=[speaker_choice, language_choice, tqdm_choice],
                 outputs=[speaker_output]
             )
+
 
         with gr.Column(scale=1):
             gr.Markdown(
@@ -276,6 +333,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     inputs=[preprocess_speaker_choice, preprocess_language_choice, preprocess_checkbox, preprocess_filelist],
                     outputs=[preprocess_textbox]
                 )
+
 
         with gr.Column(scale=1):
             gr.Markdown(
@@ -370,6 +428,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     outputs=[config_result]
                 )
 
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -403,6 +462,8 @@ with gr.Blocks(title="VITS-WebUI") as app:
                         inputs=[train_speakers, train_config_path, train_model_path],
                         outputs=[train_textbox]
                     )
+
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -425,6 +486,8 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 inputs=[folder_path],
                 outputs=[tensorboard_result]
             )
+
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -460,9 +523,19 @@ with gr.Blocks(title="VITS-WebUI") as app:
 
 if __name__ == "__main__":
     my_config = Config()
+    sp_folder_path = "filelists/SP"
+    mp_folder_path = "filelists/MP"
+    audio_input_folder_path = "audio/input/"
+    audio_output_folder_path = "audio/output/"
+
+    ffmpeg_info = is_ffmpeg()
+
     # filelists/SP와 filelists/MP 중 하나라도 없는 경우 폴더를 만듭니다.
-    if not os.path.isdir("filelists/SP") or not os.path.isdir("filelists/MP"):
-        os.makedirs("filelists/SP", exist_ok=True)
-        os.makedirs("filelists/MP", exist_ok=True)
+    if not os.path.isdir(sp_folder_path) or not os.path.isdir(mp_folder_path):
+        os.makedirs(sp_folder_path, exist_ok=True)
+        os.makedirs(mp_folder_path, exist_ok=True)
+    if not os.path.isdir(audio_input_folder_path) or not os.path.isdir(audio_output_folder_path):
+        os.makedirs(audio_input_folder_path, exist_ok=True)
+        os.makedirs(audio_output_folder_path, exist_ok=True)
     webbrowser.open("http://localhost:7860")
     app.launch()

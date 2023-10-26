@@ -11,7 +11,8 @@ git clone https://github.com/Roista57/vits-webui.git
   - cmake: https://cmake.org/download/  
   - visual studio build tools 2019: https://visualstudio.microsoft.com/ko/vs/older-downloads/  
   - Cuda Toolkit: https://developer.nvidia.com/cuda-toolkit-archive  
-  - cuDNN: https://developer.nvidia.com/rdp/cudnn-archive  
+  - cuDNN: https://developer.nvidia.com/rdp/cudnn-archive
+  - ffmpeg https://www.gyan.dev/ffmpeg/builds/
 
 ### 3. webui_start.bat 파일 실행
 ### 4. 준비한 음성 파일을 filelists/SP 나 filelists/MP 폴더에 넣습니다.
@@ -67,3 +68,8 @@ git clone https://github.com/Roista57/vits-webui.git
 - 추론 Webui 실행을 누르면 server.py를 실행합니다.
 - Tensorboard를 종료하려면  Ctrl + C를 누르거나 명령 프롬프트를 종료하세요.
 ![img.png](readmeImage/step6.png)
+
+### 기능 목록
+- [x] faster-whisper를 이용하여 대본을 작성하는 기능
+- [x] 언어를 바꿔 학습할 때마다 symbols.py를 자동으로 변경하는 기능
+- [ ] 오디오의 샘플레이트를 변경하는 기능(ffmpeg를 사용하여 변경하는 기능)
