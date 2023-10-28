@@ -10,12 +10,13 @@ import sys
 # faster_whisper를 사용하여 음성 파일을 읽은 뒤 대사를 반환합니다.
 def whisper_script(model, path, lang):
     segments, info = model.transcribe(path, language=lang, beam_size=5)
+    text = ""
     for segment in segments:
-        text = segment.text
-        if text[0] == ' ':
-            return text[1:]
-        else:
-            return text
+        text += segment.text
+    if text[0] == ' ':
+        return text[1:]
+    else:
+        return text
 
 
 # 추출된 대사를 보여주지만 예측하는 작업 종료시간을 보여주지 않습니다.
