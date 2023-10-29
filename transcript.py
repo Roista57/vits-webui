@@ -38,17 +38,24 @@ def process_wav_files(model, files, base_path, output, lang, idx=None):
     for wav in files:
         full_wav_path = os.path.join(base_path, wav)
         text = whisper_script(model, full_wav_path, lang)  # 음성 파일을 처리하는 함수.
-        print_line = f"{full_wav_path}|{text}" if idx is None else f"{full_wav_path}|{idx}|{text}"
-        print(print_line)
-        output.write(print_line + "\n")
+        if len(text) == 0:
+            print(f"Error: {full_wav_path} 파일의 대본을 추출하지 못했습니다.")
+        else:
+            print_line = f"{full_wav_path}|{text}" if idx is None else f"{full_wav_path}|{idx}|{text}"
+            print(print_line)
+            output.write(print_line + "\n")
+
 
 
 def process_wav_files_tqdm(model, files, base_path, output, lang, idx=None):
     for wav in tqdm(files, desc=base_path):
         full_wav_path = os.path.join(base_path, wav)
         text = whisper_script(model, full_wav_path, lang)  # 음성 파일을 처리하는 함수.
-        print_line = f"{full_wav_path}|{text}" if idx is None else f"{full_wav_path}|{idx}|{text}"
-        output.write(print_line + "\n")
+        if len(text) == 0:
+            print(f"Error: {full_wav_path} 파일의 대본을 추출하지 못했습니다.")
+        else:
+            print_line = f"{full_wav_path}|{text}" if idx is None else f"{full_wav_path}|{idx}|{text}"
+            output.write(print_line + "\n")
 
 
 # 추출된 대사를 보여주지만 예측하는 작업 종료시간을 보여주지 않습니다.
