@@ -10,6 +10,7 @@ from text.symbols import cleaner_symbols
 from transcript import run_whisper, run_whisper_tqdm
 
 
+
 class Config:
     def __init__(self, speaker=None, eval_interval="1000", epoch="10000", batch="16", train=None, val=None,
                  cleaners=None, sampling="22050", n_speaker="0", name=None):
@@ -40,13 +41,13 @@ def language_cleaner(speaker, lang):
 
 
 # 대본 추출 버튼을 누르면 transcript에서 대본 작성을 진행합니다.
-def run_write_script(speaker, lang, tqdm_bool):
+def run_write_script(speaker, lang, sample_rate, tqdm_bool):
     print(f"{speaker}, {lang}")
     if speaker is None or lang is None:
         print("Speaker 또는 lang을 선택해주세요.")
         return "Speaker 또는 lang을 선택해주세요."
     try:
-        command = f'start cmd /c {python} transcript.py --speaker {speaker} --language {lang} --tqdm {tqdm_bool}'
+        command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)} --tqdm {tqdm_bool}'
         result = subprocess.run(command, shell=True)
         if result.returncode == 0:
             print("대본 작성 완료!")
@@ -192,69 +193,9 @@ def run_infer_server(config_path, model_path):
     time.sleep(2)
     webbrowser.open("http://localhost:7870/")
 
-
-def run_ffmpeg(volume, sampling_rate):
-    if is_ffmpeg():
-        command = f'start cmd /k {python} adjust_volume.py -v {int(volume)} -sr {int(sampling_rate)}'
-        subprocess.run(command, shell=True)
-
-
-def is_ffmpeg():
-    if os.path.isfile("ffmpeg/bin/ffmpeg.exe"):
-        return True
-    else:
-        return False
-
-
-def refresh_ffmpeg():
-    if is_ffmpeg():
-        return "### ffmpeg : True"
-    else:
-        return "### ffmpeg : False"
-
 # 아래는 Gardio를 사용한 Webui 코드입니다.
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
-        with gr.Column(scale=1):
-            gr.Markdown(
-                """
-                ## FFmpeg를 이용하여 Sampling_rate 변경과 볼륨 평준화(.wav, .mp3만 가능)
-                - 변경하고자 하는 음성 파일을 audio/input 폴더에 넣어주세요.
-                - Sampling rate와 목표 볼륨을 설정해주세요.
-                """
-            )
-            with gr.Row():
-                ffmpeg_path = is_ffmpeg()
-                ffmpeg_info_markdown = gr.Markdown(f"### ffmpeg : {ffmpeg_path}")
-                ffmpeg_refresh_button = gr.Button(value="새로고침", variant="primary")
-                ffmpeg_refresh_button.click(
-                    fn=refresh_ffmpeg,
-                    outputs=ffmpeg_info_markdown
-                )
-            with gr.Row():
-                sampling_rate_choice = gr.Radio(
-                    label="Sampling rate",
-                    choices=[22050, 44100],
-                    value=22050,
-                    interactive=True,
-                    info="변경할 샘플링 레이트를 선택해주세요."
-                )
-                volume_dest_choice = gr.Number(
-                    label="목표 볼륨",
-                    value=-25,
-                    minimum=-50,
-                    maximum=0,
-                    step=1,
-                    interactive=True,
-                    info="평준화를 하기 위한 목표 볼륨을 작성해주세요. (-50 ~ 0) 사이로 작성해주세요."
-                )
-                ffmpeg_button = gr.Button(value="음성 변환", variant="primary")
-                ffmpeg_button.click(
-                    fn=run_ffmpeg,
-                    inputs=[volume_dest_choice, sampling_rate_choice]
-                )
-
-
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -278,6 +219,13 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     interactive=True,
                     info="어떤 언어로 대본을 작성할 것인지 선택해주세요."
                 )
+                sampling_rate_choice = gr.Radio(
+                    choices=["22050", "44100"],
+                    label="목표 샘플레이트 선택",
+                    value="22050",
+                    interactive=True,
+                    info="음성 파일의 목표 샘플레이트를 선택해주세요."
+                )
                 tqdm_choice = gr.Checkbox(
                     label="작업시간만 출력",
                     value=True,
@@ -288,7 +236,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 speaker_output = gr.Textbox(label="결과창")
             speaker_button.click(
                 fn=run_write_script,
-                inputs=[speaker_choice, language_choice, tqdm_choice],
+                inputs=[speaker_choice, language_choice, sampling_rate_choice, tqdm_choice],
                 outputs=[speaker_output]
             )
 
@@ -525,10 +473,8 @@ if __name__ == "__main__":
     my_config = Config()
     sp_folder_path = "filelists/SP"
     mp_folder_path = "filelists/MP"
-    audio_input_folder_path = "audio/input/"
-    audio_output_folder_path = "audio/output/"
-
-    ffmpeg_info = is_ffmpeg()
+    audio_input_folder_path = "audio_file/SP/"
+    audio_output_folder_path = "audio_file/MP/"
 
     # filelists/SP와 filelists/MP 중 하나라도 없는 경우 폴더를 만듭니다.
     if not os.path.isdir(sp_folder_path) or not os.path.isdir(mp_folder_path):
