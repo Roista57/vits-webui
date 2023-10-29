@@ -85,36 +85,6 @@ if errorlevel 1 (
     exit /b
 )
 
-setlocal
-
-set URL=https://github.com/GyanD/codexffmpeg/releases/download/2023-10-23-git-ff5a3575fe/ffmpeg-2023-10-23-git-ff5a3575fe-full_build.zip
-
-for %%A in ("%URL%") do (
-    set "FILENAME=%%~nxA"
-)
-
-set "BASENAME=ffmpeg-2023-10-23-git-ff5a3575fe-full_build"
-
-echo Downloading %FILENAME%...
-powershell -Command "& { (New-Object System.Net.WebClient).DownloadFile('%URL%', '%FILENAME%') }"
-echo.
-
-echo Extracting file...
-powershell -Command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('%FILENAME%', (Get-Location).Path); }"
-echo.
-
-if exist "%BASENAME%" (
-    ren "%BASENAME%" ffmpeg
-) else (
-    echo Could not find the folder to rename. Please check the extraction process.
-)
-
-echo Zip file delete...
-del /F %FILENAME%
-echo.
-
-endlocal
-
 echo Setup complete.
 
 pause
