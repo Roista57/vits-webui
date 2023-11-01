@@ -7,7 +7,6 @@ import webbrowser
 import gradio as gr
 import torch
 from text.symbols import cleaner_symbols
-from transcript import run_whisper, run_whisper_tqdm
 
 
 
@@ -47,7 +46,10 @@ def run_write_script(speaker, lang, sample_rate, tqdm_bool):
         print("Speaker 또는 lang을 선택해주세요.")
         return "Speaker 또는 lang을 선택해주세요."
     try:
-        command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)} --tqdm {tqdm_bool}'
+        if tqdm_bool:
+            command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)} --tqdm'
+        else:
+            command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)}'
         result = subprocess.run(command, shell=True)
         if result.returncode == 0:
             print("대본 작성 완료!")
@@ -200,8 +202,8 @@ with gr.Blocks(title="VITS-WebUI") as app:
             gr.Markdown(
                 """
                 ## Step 1: Faster-Whisper를 이용하여 음성 파일들의 대본를 작성합니다.
-                - 단일 화자라면 filelists/SP 폴더 안에 음성 파일을 넣어주세요.
-                - 다중 화자라면 filelists/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
+                - 단일 화자라면 audio/SP 폴더 안에 음성 파일을 넣어주세요.
+                - 다중 화자라면 audio/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
                 """
             )
             with gr.Row():
@@ -473,8 +475,8 @@ if __name__ == "__main__":
     my_config = Config()
     sp_folder_path = "filelists/SP"
     mp_folder_path = "filelists/MP"
-    audio_input_folder_path = "audio_file/SP/"
-    audio_output_folder_path = "audio_file/MP/"
+    audio_input_folder_path = "audio/SP/"
+    audio_output_folder_path = "audio/MP/"
 
     # filelists/SP와 filelists/MP 중 하나라도 없는 경우 폴더를 만듭니다.
     if not os.path.isdir(sp_folder_path) or not os.path.isdir(mp_folder_path):
