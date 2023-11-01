@@ -6,19 +6,14 @@ git clone https://github.com/Roista57/vits-webui.git
 ```
 
 ### 2. setup.bat 파일 실행
-- setup.bat 파일 실행 과정에서 오류가 발생한 경우 아래의 프로그램이 설치되어 있는지 확인해주세요.  
-  - python3.8: https://www.python.org/downloads/release/python-3810/
-  - cmake: https://cmake.org/download/  
-  - visual studio build tools 2019: https://visualstudio.microsoft.com/ko/vs/older-downloads/  
-  - Cuda Toolkit: https://developer.nvidia.com/cuda-toolkit-archive  
-  - cuDNN: https://developer.nvidia.com/rdp/cudnn-archive
-  - ffmpeg https://www.gyan.dev/ffmpeg/builds/
+- setup.bat 파일 실행 과정에서 오류가 발생한 경우 아래의 프로그램이 설치되어 있는지 확인해주세요.
+  - visual studio build tools 2019: https://visualstudio.microsoft.com/ko/vs/older-downloads/
 
 ### 3. webui_start.bat 파일 실행
-### 4. 준비한 음성 파일을 filelists/SP 나 filelists/MP 폴더에 넣습니다.
+### 4. 준비한 음성 파일을 audio/SP 또는 audio/MP 폴더에 넣습니다.
 - 단일 화자의 음성을 준비한 경우 SP폴더에 다음과 같이 넣습니다.
   - ```commandline
-    filelists/SP
+    audio/SP
     ├─audio1.wav
     ├─audio2.wav
     ├─audio3.wav
@@ -27,7 +22,7 @@ git clone https://github.com/Roista57/vits-webui.git
     ```
 - 다중 화자의 음성을 준비한 경우에는 MP폴더에 다음과 같이 넣습니다.
   - ```commandline
-    filelists/MP
+    audio/MP
     ├─speaker_1
     │  ├─audio1.wav
     │  ├─audio2.wav
@@ -72,4 +67,9 @@ git clone https://github.com/Roista57/vits-webui.git
 ### 기능 목록
 - [x] faster-whisper를 이용하여 대본을 작성하는 기능
 - [x] 언어를 바꿔 학습할 때마다 symbols.py를 자동으로 변경하는 기능
-- [ ] 오디오의 샘플레이트를 변경하는 기능(ffmpeg를 사용하여 변경하는 기능)
+- [x] 오디오의 샘플레이트를 변경하는 기능
+- [x] 위스퍼에서 대본을 작성하지 못한 경우에 대한 예외처리
+  - whisper_script 에서 반환받은 text의 길이가 0인 경우 Error 출력을 하고 filelists.txt에 대본을 작성하지 않고 넘어가도록 수정
+- [x] 정상적이지 않은 음성 파일이 들어온 경우에 대한 예외처리
+- [x] 사용자가 1초 미만의 음성 데이터를 넣는 경우에 대한 예외처리
+- [x] 배치파일에서 cmake를 자동으로 설치하는 기능
