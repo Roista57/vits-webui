@@ -28,7 +28,7 @@ def resample_wav(input_wav_path, output_wav_path, target_sample_rate=22050):
         if not (1000 <= audio_duration <= 10000):
             print(f"{input_wav_path} is out of the valid duration range (1-10 seconds).")
             return False
-        resampled_audio = audio.set_frame_rate(target_sample_rate)
+        resampled_audio = audio.set_frame_rate(target_sample_rate).set_channels(1)
         resampled_audio.export(output_wav_path, format="wav")
         return True
     except CouldntDecodeError as e:
