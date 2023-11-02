@@ -62,6 +62,15 @@ if errorlevel 1 (
     exit /b
 )
 
+echo Installing ffmpeg...
+call conda install -c conda-forge ffmpeg -y
+
+if errorlevel 1 (
+    echo Error: Failed to install ffmpeg.
+    pause
+    exit /b
+)
+
 echo Installing pyopenjtalk...
 pip install -U pyopenjtalk==0.2.0 --no-build-isolation
 

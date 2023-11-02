@@ -7,7 +7,7 @@ import webbrowser
 import gradio as gr
 import torch
 from text.symbols import cleaner_symbols
-from transcript import run_whisper, run_whisper_tqdm
+
 
 
 class Config:
@@ -40,13 +40,16 @@ def language_cleaner(speaker, lang):
 
 
 # 대본 추출 버튼을 누르면 transcript에서 대본 작성을 진행합니다.
-def run_write_script(speaker, lang, tqdm_bool):
+def run_write_script(speaker, lang, sample_rate, tqdm_bool):
     print(f"{speaker}, {lang}")
     if speaker is None or lang is None:
         print("Speaker 또는 lang을 선택해주세요.")
         return "Speaker 또는 lang을 선택해주세요."
     try:
-        command = f'start cmd /c {python} transcript.py --speaker {speaker} --language {lang} --tqdm {tqdm_bool}'
+        if tqdm_bool:
+            command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)} --tqdm'
+        else:
+            command = f'start cmd /k {python} transcript.py --speaker {speaker} --language {lang} --samplerate {int(sample_rate)}'
         result = subprocess.run(command, shell=True)
         if result.returncode == 0:
             print("대본 작성 완료!")
@@ -192,19 +195,15 @@ def run_infer_server(config_path, model_path):
     time.sleep(2)
     webbrowser.open("http://localhost:7870/")
 
-
 # 아래는 Gardio를 사용한 Webui 코드입니다.
 with gr.Blocks(title="VITS-WebUI") as app:
     with gr.Tab("학습"):
-        gr.Markdown(f'## 현재 사용자의 torch.cuda.is_available() == {torch.cuda.is_available()}\n'
-                    f'- torch.cuda.is_available()이 True라면 그래픽카드를 사용할 수 있음\n'
-                    f'- torch.cuda.is_available()이 Flase라면 그래픽카드를 사용할 수 없음')
         with gr.Column(scale=1):
             gr.Markdown(
                 """
                 ## Step 1: Faster-Whisper를 이용하여 음성 파일들의 대본를 작성합니다.
-                - 단일 화자라면 filelists/SP 폴더 안에 음성 파일을 넣어주세요.
-                - 다중 화자라면 filelists/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
+                - 단일 화자라면 audio/SP 폴더 안에 음성 파일을 넣어주세요.
+                - 다중 화자라면 audio/MP 폴더 안에 각 화자별로 폴더를 나누어 넣어주세요.
                 """
             )
             with gr.Row():
@@ -222,9 +221,17 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     interactive=True,
                     info="어떤 언어로 대본을 작성할 것인지 선택해주세요."
                 )
+                sampling_rate_choice = gr.Radio(
+                    choices=["22050", "44100"],
+                    label="목표 샘플레이트 선택",
+                    value="22050",
+                    interactive=True,
+                    info="음성 파일의 목표 샘플레이트를 선택해주세요."
+                )
                 tqdm_choice = gr.Checkbox(
                     label="작업시간만 출력",
                     value=True,
+                    interactive=False,
                     info="tqdm 라이브러리를 사용하여 작업 종료 시간을 보여줍니다.\n선택하면 번역된 문장들은 보이지 않습니다."
                 )
             with gr.Row():
@@ -232,9 +239,10 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 speaker_output = gr.Textbox(label="결과창")
             speaker_button.click(
                 fn=run_write_script,
-                inputs=[speaker_choice, language_choice, tqdm_choice],
+                inputs=[speaker_choice, language_choice, sampling_rate_choice, tqdm_choice],
                 outputs=[speaker_output]
             )
+
 
         with gr.Column(scale=1):
             gr.Markdown(
@@ -276,6 +284,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     inputs=[preprocess_speaker_choice, preprocess_language_choice, preprocess_checkbox, preprocess_filelist],
                     outputs=[preprocess_textbox]
                 )
+
 
         with gr.Column(scale=1):
             gr.Markdown(
@@ -370,6 +379,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                     outputs=[config_result]
                 )
 
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -403,6 +413,8 @@ with gr.Blocks(title="VITS-WebUI") as app:
                         inputs=[train_speakers, train_config_path, train_model_path],
                         outputs=[train_textbox]
                     )
+
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -425,6 +437,8 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 inputs=[folder_path],
                 outputs=[tensorboard_result]
             )
+
+
         with gr.Column(scale=1):
             gr.Markdown(
                 """
@@ -460,9 +474,17 @@ with gr.Blocks(title="VITS-WebUI") as app:
 
 if __name__ == "__main__":
     my_config = Config()
+    sp_folder_path = "filelists/SP"
+    mp_folder_path = "filelists/MP"
+    audio_input_folder_path = "audio/SP/"
+    audio_output_folder_path = "audio/MP/"
+
     # filelists/SP와 filelists/MP 중 하나라도 없는 경우 폴더를 만듭니다.
-    if not os.path.isdir("filelists/SP") or not os.path.isdir("filelists/MP"):
-        os.makedirs("filelists/SP", exist_ok=True)
-        os.makedirs("filelists/MP", exist_ok=True)
+    if not os.path.isdir(sp_folder_path) or not os.path.isdir(mp_folder_path):
+        os.makedirs(sp_folder_path, exist_ok=True)
+        os.makedirs(mp_folder_path, exist_ok=True)
+    if not os.path.isdir(audio_input_folder_path) or not os.path.isdir(audio_output_folder_path):
+        os.makedirs(audio_input_folder_path, exist_ok=True)
+        os.makedirs(audio_output_folder_path, exist_ok=True)
     webbrowser.open("http://localhost:7860")
     app.launch()
