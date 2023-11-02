@@ -1,36 +1,42 @@
 from faster_whisper import WhisperModel
 import argparse
 from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 import os
 import wave
 from tqdm import tqdm
 
 
 def resample_wav(input_wav_path, output_wav_path, target_sample_rate=22050):
+    # If the output file already exists and has the correct parameters, skip processing.
     if os.path.exists(output_wav_path):
-        with wave.open(output_wav_path, 'rb') as wf:
-            num_channels = wf.getnchannels()
-            sample_width = wf.getsampwidth()
-            sample_rate = wf.getframerate()
-            if num_channels == 1 and sample_width == 2 and sample_rate == target_sample_rate:
-                # print(f"{output_wav_path} already exists. Skipping...")
-                return
-    else:
-        if not check_wav_files(input_wav_path):
-            return
+        try:
+            with wave.open(output_wav_path, 'rb') as wf:
+                num_channels = wf.getnchannels()
+                sample_width = wf.getsampwidth()
+                sample_rate = wf.getframerate()
+        except wave.Error as e:
+            print(f"An error occurred while reading {output_wav_path}: {e}")
+            return False
+        if num_channels == 1 and sample_width == 2 and sample_rate == target_sample_rate:
+            return True
+
+    # Process the input WAV file
     try:
         audio = AudioSegment.from_wav(input_wav_path)
-        if len(audio) < 1000:
-            print(f"{input_wav_path} The length of the audio is less than 1 second.")
-            return
-        if len(audio) > 10000:
-            print(f"{input_wav_path} The length of the audio is long than 10 second.")
-            return
+        audio_duration = len(audio)
+        if not (1000 <= audio_duration <= 10000):
+            print(f"{input_wav_path} is out of the valid duration range (1-10 seconds).")
+            return False
         resampled_audio = audio.set_frame_rate(target_sample_rate)
-        # print(f"Trying to save to: {output_wav_path}")
         resampled_audio.export(output_wav_path, format="wav")
+        return True
+    except CouldntDecodeError as e:
+        print(f"Could not decode {input_wav_path}. It might not be a valid audio file: {e}")
+        return False
     except Exception as e:
-        print(f"Error processing {input_wav_path}: {e}")
+        print(f"An unspecified error occurred while loading {input_wav_path}: {e}")
+        return False
 
 
 def check_wav_files(wav_path):
@@ -115,19 +121,18 @@ def run_whisper_to_script(args):
                     # print(f"Creating directory: {output_dir_path}")
                     os.makedirs(output_dir_path)
 
-                resample_wav(filename, output_wav_path, sample_rate)
-                text = whisper_script(model, output_wav_path, language)
-
-                # 기존 코드에서 speaker 처리 부분을 요구사항에 맞게 수정
-                if speaker == "Multi":
-                    idx = get_speaker_index(filename, speakers_mapping)
-                    file.write(f"{output_wav_path}|{idx}|{text}\n")
-                    if not run_tqdm:
-                        print(f"{output_wav_path}|{idx}|{text}\n")
-                else:
-                    file.write(f"{output_wav_path}|{text}\n")
-                    if not run_tqdm:
-                        print(f"{output_wav_path}|{text}\n")
+                if resample_wav(filename, output_wav_path, sample_rate):
+                    text = whisper_script(model, output_wav_path, language)
+                    # 기존 코드에서 speaker 처리 부분을 요구사항에 맞게 수정
+                    if speaker == "Multi":
+                        idx = get_speaker_index(filename, speakers_mapping)
+                        file.write(f"{output_wav_path}|{idx}|{text}\n")
+                        if not run_tqdm:
+                            print(f"{output_wav_path}|{idx}|{text}\n")
+                    else:
+                        file.write(f"{output_wav_path}|{text}\n")
+                        if not run_tqdm:
+                            print(f"{output_wav_path}|{text}\n")
             except Exception as e:
                 print(f"Error processing {filename} with Whisper or during resampling: {e}")
 
