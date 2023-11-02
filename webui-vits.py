@@ -231,6 +231,7 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 tqdm_choice = gr.Checkbox(
                     label="작업시간만 출력",
                     value=True,
+                    interactive=False,
                     info="tqdm 라이브러리를 사용하여 작업 종료 시간을 보여줍니다.\n선택하면 번역된 문장들은 보이지 않습니다."
                 )
             with gr.Row():
