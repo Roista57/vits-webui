@@ -297,13 +297,13 @@ with gr.Blocks(title="VITS-WebUI") as app:
                 config_eval_interval = gr.Textbox(
                     label="eval_interval",
                     value="1000",
-                    interactive=True,
+                    interactive=False,
                     info="학습을 진행할 때 몇 step 마다 저장할 것인지에 설정하는 값"
                 )
                 config_epochs = gr.Textbox(
                     label="epochs",
                     value="10000",
-                    interactive=True,
+                    interactive=False,
                     info="전체 데이터셋을 몇 번 반복하여 학습할 것인지 설정하는 값"
                 )
                 config_batch_size = gr.Textbox(
